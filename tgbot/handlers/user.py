@@ -63,7 +63,9 @@ async def help_callback_handler(callback_query: CallbackQuery):
                            reply_markup=keyboard_client(), disable_web_page_preview=True)
 
 async def show_my_keys(message: Message):
-    await message.answer(f'Список ваших ключей:',
+    await message.answer(f'Список ваших ключей. \n'
+                         f'Выберите ключ чтобы получить ссылку для доступа \n\n'
+                         ,
                          reply_markup=await keyboard_keys_list('showkeys',message.chat.id), disable_web_page_preview=True)
     
 
