@@ -7,9 +7,9 @@ services:
     command:
       - "postgres"
       - "-c"
-      - "max_connections=10"
+      - "max_connections=5"
       - "-c"
-      - "shared_buffers=1GB"
+      - "shared_buffers=250MB"
       - "-c"
       - "effective_cache_size=4GB"
       - "-c"
