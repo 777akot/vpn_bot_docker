@@ -91,7 +91,11 @@ async def show_info(message: Message):
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     access_url = await db.get_key_by_label(callback_data['key'])
     await callback_query.answer()
-    await bot.send_message(callback_query.from_user.id,f'Вставьте вашу ссылку доступа в приложение Outline:\n\n {access_url}')
+    text = "Ключ не оплачен"
+    if access_url != None:
+        text = "Вставьте вашу ссылку доступа в приложение Outline: \n\n {access_url}"
+    await bot.send_message(callback_query.from_user.id,text              
+                            )
 
 def register_user(dp: Dispatcher):
     # dp.register_message_handler(user_start, commands=["start"], chat_type=ChatType.PRIVATE)
