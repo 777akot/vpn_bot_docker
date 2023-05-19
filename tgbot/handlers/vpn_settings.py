@@ -100,9 +100,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
 
     await bot.send_message(callback_query.from_user.id,
                                f'Вы выбрали сервер: {server_name} \n'
-                               f'Оплатите {price} рексов \n'
-                               f'{owner_id}'
-                               f'{label}'
+                               f'Оплатите {price} RUB \n'
                                ,
                                reply_markup=await keyboard_p2p_payment(
                                                                         quickpay.redirected_url,
@@ -174,7 +172,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
 
             # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
             result = await db.set_trial_used(callback_query.from_user.id, True)
-            
+
             await bot.send_message(callback_query.from_user.id,
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
             await bot.send_message(callback_query.from_user.id,
