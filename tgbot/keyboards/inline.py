@@ -78,9 +78,9 @@ async def keyboard_keys_list(action_type: str, user_id: int):
     keys = await key_controller.get_all_keys(user_id)
 
     for x in keys:
-        print("key",x)
-        keyboard.insert(InlineKeyboardButton(f'{x[0]} : {x[1]}', callback_data=vpn_keys_callback.new(action_type=action_type,
-                                                                                          key=f'{x[0]}')))
+        print(f"\n key {x} \n")
+        keyboard.insert(InlineKeyboardButton(f'{x[0]} : {x[1]} : {x[2]}', callback_data=vpn_keys_callback.new(action_type=action_type,
+                                                                                          key=f'{x[3]}')))
     return keyboard
 
 # def keyboard_p2p_buy()

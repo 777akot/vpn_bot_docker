@@ -166,8 +166,12 @@ class Database:
         return await self.execute(sql, owner_id, label, expiration_at, server_id, execute=True)
     
     async def get_all_keys(self, user_id):
-        sql = "SELECT (server_id,active) FROM vpn_keys WHERE owner_id = $1"
+        sql = "SELECT (server_id,active,bought,label) FROM vpn_keys WHERE owner_id = $1"
         return await self.execute(sql, user_id, fetch=True)
+    
+    async def get_key_by_label(self, label):
+        sql = "SELECT (outline_access_url) FROM vpn_keys WHERE label=$1"
+        return await self.execute(sql, label, fetchval=True)
     
     async def delete_key(self, key_id):
         sql = "DELETE FROM vpn_keys WHERE key_id=$1"
@@ -182,7 +186,7 @@ class Database:
         return await self.execute(sql, user_id, label, fetchval=True)
     
     async def update_payment_status(self, user_id, label, bought):
-        sql = "UPDATE vpn_keys SET bought=($3) WHERE owner_id=($1) AND label=($2)"
+        sql = "UPDATE vpn_keys SET bought=($3), active=($3) WHERE owner_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, bought, execute=True)
     
     async def update_outline_key_id(self, user_id, label, key_id, access_url):

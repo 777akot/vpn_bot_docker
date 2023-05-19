@@ -21,6 +21,12 @@ async def get_all_keys(user_id):
             result = "Активен"
         return f"{result}"
     
+    def get_paid(bought):
+        result = "Неоплачен"
+        if bought == True:
+            result = "Оплачен"
+        return f"{result}"
+
     keys = await db.get_all_keys(user_id)
 
     predefined_keys = [x[0] for x in keys]
@@ -30,7 +36,7 @@ async def get_all_keys(user_id):
     
     
     
-    result = [(await get_server_name(server), get_active(active)) for server, active in predefined_keys]
+    result = [(await get_server_name(server), get_active(active), get_paid(bought),label) for server, active, bought, label in predefined_keys]
     
     
     return result

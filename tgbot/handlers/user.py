@@ -72,6 +72,7 @@ async def show_info(message: Message):
     user_id = message.chat.id
     bot_info = await bot.get_me()
     ref_link = f'https://t.me/{bot_info.username}?start={user_id}'
+    ref_link_view = f't.me/{bot_info.username}?start={user_id}'
     referal_users = await get_referal_users(user_id)
     paid_referal_users = 0
     if len(referal_users) > 0:
@@ -79,8 +80,8 @@ async def show_info(message: Message):
             if x[0] == True:
                 paid_referal_users += 1
     
-    await message.answer(f'Пользователь {user_name}: \n'
-                         f'Список ваших ключей: /mykeys \n'
+    await message.answer(f'Пользователь {user_name}: \n\n'
+                         f'Список ваших ключей: /mykeys \n\n'
                          f'Ваша реферальная ссылка: \n'
                          f'{ref_link} \n'
                          f'Количество привлеченных пользователей: \n'
@@ -88,8 +89,9 @@ async def show_info(message: Message):
                          )
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    access_url = await db.get_key_by_label(callback_data['key'])
     await callback_query.answer()
-    await bot.send_message(callback_query.from_user.id,callback_data)
+    await bot.send_message(callback_query.from_user.id,f'Вставьте вашу ссылку доступа в приложение Outline:\n\n {access_url}')
 
 def register_user(dp: Dispatcher):
     # dp.register_message_handler(user_start, commands=["start"], chat_type=ChatType.PRIVATE)
