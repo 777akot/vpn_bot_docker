@@ -1,0 +1,7 @@
+FROM alpine:3.12
+RUN apk add --no-cache curl
+WORKDIR /usr/src/cron/
+COPY cron/bash/bash.sh /usr/src/cron/bash.sh
+RUN chmod +x /usr/src/cron/bash.sh
+COPY cron/crontabs/root /var/spool/cron/crontabs/root
+CMD crond -l 2 -f

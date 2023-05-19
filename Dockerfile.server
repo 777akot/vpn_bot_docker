@@ -1,0 +1,13 @@
+FROM python:3.9-alpine
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /usr/src/server/
+
+COPY requirements.txt /usr/src/server/
+RUN pip install -r /usr/src/server/requirements.txt
+COPY config.py /usr/src/server/
+COPY loader.py /usr/src/server/
+COPY .env /usr/src/server/
+COPY ./server /usr/src/server/
+COPY server.py /usr/src/server/
