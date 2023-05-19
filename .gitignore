@@ -2,6 +2,6 @@
 __pycache__/
 .git
 .idea
-/volumes
+volumes
 
 # /.env
