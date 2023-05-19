@@ -72,6 +72,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
     # print(f'\n USER DATA . : {user_data[0].user_name}')
     print(f'\n USER DATA [] : {user_data[0]["user_name"]}')
 
+    trial_used = user_data[0]['trial_used']
     referer_id = user_data[0]["referer_id"]
     referer_payout = None
     
@@ -99,10 +100,13 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
     await db.add_key(owner_id,label,expiration_at,int(server_id))
 
     await bot.send_message(callback_query.from_user.id,
-                               f'Вы выбрали сервер: {server_name} \n'
-                               f'Оплатите {price} RUB \n'
-                               ,
-                               reply_markup=await keyboard_p2p_payment(
+                                f'Вы выбрали сервер <b>{server_name}</b> \n'
+                                f'Стоимость ежемесячной подписки <b>{price} RUB</b> \n \n' 
+                                f'После проведения оплаты необходимо нажать кнопку <b>Получить ключ</b> \n'
+                                f'{"Или воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку." if trial_used != True else ""}'
+                                f'\n\n'
+                                ,
+                                reply_markup=await keyboard_p2p_payment(
                                                                         quickpay.redirected_url,
                                                                         label,
                                                                         owner_id,

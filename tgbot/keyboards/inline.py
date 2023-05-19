@@ -20,9 +20,8 @@ def keyboard_start():
 def keyboard_p2p_start():
     keyboard = InlineKeyboardMarkup()
     inline_btn_1 = InlineKeyboardButton(f'Доступ к VPN',
-                                        callback_data=vpn_p2p_callback.new(action_type='vpn_settings', server='no')
-                                        )
-    inline_btn_2 = InlineKeyboardButton(f'Что за VPN?', callback_data='why')
+                                        callback_data=vpn_p2p_callback.new(action_type='vpn_settings', server='no'))
+    inline_btn_2 = InlineKeyboardButton(f'Скачать клиент', callback_data='why')
     return keyboard.row(inline_btn_1, inline_btn_2)
 
 async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, server: str):
@@ -31,7 +30,7 @@ async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, serv
     print(f"\n TRIAL: {trial_used}")
     inline_btn_0 = InlineKeyboardButton(f'Тестовый период', callback_data=trial_callback.new(action_type="trial", server=server, label=label))
     inline_btn_1 = InlineKeyboardButton(f'Перейти к оплате!', url=quickpay_url)
-    inline_btn_2 = InlineKeyboardButton(f'Получить товар!', callback_data=vpn_p2p_claim_callback.new(action_type='p2p_claim', server=server, label=label))
+    inline_btn_2 = InlineKeyboardButton(f'Получить ключ!', callback_data=vpn_p2p_claim_callback.new(action_type='p2p_claim', server=server, label=label))
 
     if trial_used != True:
         keyboard.add(inline_btn_0)
@@ -41,9 +40,27 @@ async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, serv
 
 def keyboard_help():
     keyboard = InlineKeyboardMarkup()
-    btn_vpn_client = InlineKeyboardButton(f'Клиент Outline VPN',
+    btn_vpn_client = InlineKeyboardButton(f'Скачать клиент Outline VPN',
                                           url=f'https://getoutline.org/ru/get-started/')
     keyboard.row(btn_vpn_client)
+    return keyboard
+
+def keyboard_client():
+    keyboard = InlineKeyboardMarkup()
+    btn1 = InlineKeyboardButton(f'Android',
+                                          url=f'https://play.google.com/store/apps/details?id=org.outline.android.client')
+    btn2 = InlineKeyboardButton(f'Windows',
+                                          url=f'https://s3.amazonaws.com/outline-releases/client/windows/stable/Outline-Client.exe')
+    btn3 = InlineKeyboardButton(f'Chrome',
+                                          url=f'https://play.google.com/store/apps/details?id=org.outline.android.client')
+    btn4 = InlineKeyboardButton(f'iOS',
+                                          url=f'https://itunes.apple.com/us/app/outline-app/id1356177741')
+    btn5 = InlineKeyboardButton(f'MacOS',
+                                          url=f'https://itunes.apple.com/us/app/outline-app/id1356178125')
+    btn6 = InlineKeyboardButton(f'Linux',
+                                          url=f'https://s3.amazonaws.com/outline-releases/client/linux/stable/Outline-Client.AppImage')
+    keyboard.row(btn1, btn2, btn3) 
+    keyboard.row(btn4, btn5, btn6)
     return keyboard
 
 

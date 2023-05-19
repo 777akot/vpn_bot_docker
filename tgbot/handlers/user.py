@@ -5,7 +5,7 @@ from typing import Dict
 
 from loader import bot, db
 from tgbot.keyboards.callback_data_factory import vpn_keys_callback
-from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_start, keyboard_keys_list
+from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_start, keyboard_keys_list, keyboard_client
 
 from tgbot.controllers.referal import get_referal_users
 
@@ -23,7 +23,8 @@ async def p2p_start(message: Message):
     referer_id = extract_referer_id(message.text) or None
     ref = referer_id
     if referer_id:
-        await message.answer('p2p_start: referer_id: ' + referer_id)
+        # await message.answer('referer_id: ' + referer_id)
+        print(f'referer_id: {referer_id}')
         ref = int(referer_id)
     try:
         await db.add_user(message.chat.id, message.chat.first_name, ref)
@@ -31,7 +32,12 @@ async def p2p_start(message: Message):
         print(f'error: {e}')
         pass
     finally:
-        await message.answer(f'Привет, {message.chat.first_name}!',
+        await message.answer(f'Привет, {message.chat.first_name}! \n\n'
+                             f'Чтобы начать пользоваться VPN, вам необходимо скачать клиент Outline для вашего устройства. \n'
+                             f'Дальше необходимо нажать кнопку “Доступ к впн “ и выбрать страну.\n\n'
+                             f'Получить информацию об аккаунте: /info \n'
+                             f'\n\n'
+                             ,
                         reply_markup=keyboard_p2p_start(), disable_web_page_preview=True)
 
 
@@ -51,8 +57,10 @@ async def help_callback_handler(callback_query: CallbackQuery):
                            f'которое прошло проверку организаций '
                            f'<a href="https://s3.amazonaws.com/outline-vpn/static_downloads/ros-report.pdf">Radically Open Security</a> и '
                            f'<a href="https://s3.amazonaws.com/outline-vpn/static_downloads/cure53-report.pdf">Cure53</a>.\n\n'
-                           f'Outline использует технологии <a href="https://shadowsocks.org/">Shadowsocks</a>',
-                           reply_markup=keyboard_help(), disable_web_page_preview=True)
+                           f'Outline использует технологии <a href="https://shadowsocks.org/">Shadowsocks</a>\n\n'
+                           f'Скачать клиент Outline с официального сайта:\n'
+                           ,
+                           reply_markup=keyboard_client(), disable_web_page_preview=True)
 
 async def show_my_keys(message: Message):
     await message.answer(f'Список ваших ключей:',
