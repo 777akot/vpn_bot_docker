@@ -93,7 +93,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     await callback_query.answer()
     text = "Ключ не оплачен"
     if access_url != None:
-        text = "Вставьте вашу ссылку доступа в приложение Outline: \n\n {access_url}"
+        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n {access_url}"
     await bot.send_message(callback_query.from_user.id,text              
                             )
 
