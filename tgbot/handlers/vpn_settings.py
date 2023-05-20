@@ -143,7 +143,7 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
             await bot.send_message(callback_query.from_user.id,
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
             await bot.send_message(callback_query.from_user.id,
-                                f'{accessUrl}')
+                                f'<code>{accessUrl}</code>')
             await callback_query.answer()
         except ClientConnectorError:
             await bot.send_message(callback_query.from_user.id,
@@ -180,7 +180,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
             await bot.send_message(callback_query.from_user.id,
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
             await bot.send_message(callback_query.from_user.id,
-                                f'{accessUrl}')
+                                f'<code>{accessUrl}</code>')
             await callback_query.answer()
         except ClientConnectorError:
             await bot.send_message(callback_query.from_user.id,

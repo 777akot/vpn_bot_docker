@@ -85,7 +85,7 @@ async def show_info(message: Message):
     await message.answer(f'Пользователь {user_name}: \n\n'
                          f'Список ваших ключей: /mykeys \n\n'
                          f'Ваша реферальная ссылка: \n'
-                         f'{ref_link} \n'
+                         f'<code>{ref_link}</code> \n'
                          f'Количество привлеченных пользователей: \n'
                          f'{len(referal_users)} из них оплатили: {paid_referal_users}'
                          )
@@ -95,7 +95,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     await callback_query.answer()
     text = "Ключ не оплачен"
     if access_url != None:
-        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n {access_url}"
+        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n <code>{access_url}</code>"
     await bot.send_message(callback_query.from_user.id,text              
                             )
 
