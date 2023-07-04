@@ -22,15 +22,18 @@ from tgbot.controllers import p2p_payments
 
 
 async def vpn_handler(message: Message):
+    await bot.delete_message(message.chat.id, message.message_id)
     await bot.send_message(message.from_user.id, f'Выберите страну сервера', reply_markup=await keyboard_servers_list('new_key'))
 
 
 async def vpn_callback_handler(callback_query: CallbackQuery):
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
                            reply_markup=await keyboard_servers_list('new_key'))
 
 async def vpn_p2p_callback_handler(callback_query: CallbackQuery):
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
                            reply_markup=await keyboard_servers_list('new_p2p_key'))
@@ -54,6 +57,7 @@ async def get_new_key(callback_query: CallbackQuery, callback_data: Dict[str, st
 
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
 
     key_controller.new_key()

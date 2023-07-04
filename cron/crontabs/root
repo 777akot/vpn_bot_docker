@@ -1,2 +1,2 @@
 * * * * * echo 'HELLO' 
-* * * * * curl -X GET 'http://web_server:6000/' 
+* * * * * curl -X GET 'http://web_server:6000/execute-script'

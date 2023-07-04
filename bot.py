@@ -41,7 +41,8 @@ async def on_startup(dispatcher):
         # If you use polling
         await dispatcher.bot.set_my_commands([
             BotCommand('start', 'Запустить бота'),
-            BotCommand('info', 'Данные пользователя')
+            BotCommand('info', 'Данные пользователя'),
+            BotCommand('support', 'Поддержка')
         ])
 
         # If you use webhook

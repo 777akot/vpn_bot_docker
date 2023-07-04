@@ -96,8 +96,8 @@ services:
       context: .
       dockerfile: Dockerfile.server
     working_dir: "/usr/src/server"
-    volumes:
-      - .:/usr/src/server
+    # volumes:
+    #   - ./server:/usr/src/server
     command: python3 -m server
     restart: always
     env_file:

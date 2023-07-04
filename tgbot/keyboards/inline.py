@@ -22,7 +22,8 @@ def keyboard_p2p_start():
     inline_btn_1 = InlineKeyboardButton(f'Доступ к VPN',
                                         callback_data=vpn_p2p_callback.new(action_type='vpn_settings', server='no'))
     inline_btn_2 = InlineKeyboardButton(f'Скачать клиент', callback_data='why')
-    return keyboard.row(inline_btn_1, inline_btn_2)
+    inline_btn_3 = InlineKeyboardButton(text="Чат поддержки", url="https://t.me/vpnhubsupportchat")
+    return keyboard.row(inline_btn_1, inline_btn_2, inline_btn_3)
 
 async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, server: str):
     keyboard = InlineKeyboardMarkup()

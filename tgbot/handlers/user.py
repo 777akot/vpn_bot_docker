@@ -1,6 +1,8 @@
 from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery, ChatType
 
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 from typing import Dict
 
 from loader import bot, db
@@ -11,18 +13,30 @@ from tgbot.controllers.referal import get_referal_users
 
 def extract_referer_id(text):
     # Extracts referer id from the sent /start command.
-    return text.split()[1] if len(text.split()) > 1 else None
-
-
-async def user_start(message: Message):
-    await message.answer('Привет, я помогу тебе с VPN\n\n',
-                         reply_markup=keyboard_start(), disable_web_page_preview=True)
+    if len(text.split()) > 1:
+        return text.split()[1]
+    else: 
+        return None
     
+
+
+# async def user_start(message: Message):
+#     await message.answer('Привет, я помогу тебе с VPN\n\n',
+#                          reply_markup=keyboard_start(), disable_web_page_preview=True)
+
+async def clear_screen(message):
+    i = 0
+    while i <= 1 :
+        await bot.delete_message(message.chat.id, message.message_id - i)
+        i += 1
+
 async def p2p_start(message: Message):
-    
+
+    await clear_screen(message)
+    print("START")
     referer_id = extract_referer_id(message.text) or None
     ref = referer_id
-    if referer_id:
+    if referer_id is not None:
         # await message.answer('referer_id: ' + referer_id)
         print(f'referer_id: {referer_id}')
         ref = int(referer_id)
@@ -34,7 +48,7 @@ async def p2p_start(message: Message):
     finally:
         await message.answer(f'Привет, {message.chat.first_name}! \n\n'
                              f'Чтобы начать пользоваться VPN, вам необходимо скачать клиент Outline для вашего устройства. \n'
-                             f'Дальше необходимо нажать кнопку “Доступ к впн “ и выбрать страну.\n\n'
+                             f'Дальше необходимо нажать кнопку “Доступ к VPN“ и выбрать страну.\n\n'
                              f'Получить информацию об аккаунте: /info \n'
                              f'\n\n'
                              ,
@@ -42,6 +56,7 @@ async def p2p_start(message: Message):
 
 
 async def help_handler(message: Message):
+    await clear_screen(message)
     await message.answer(f'Outline – это ПО с открытым исходным кодом, '
                          f'которое прошло проверку организаций '
                          f'<a href="https://s3.amazonaws.com/outline-vpn/static_downloads/ros-report.pdf">Radically Open Security</a> и '
@@ -51,6 +66,7 @@ async def help_handler(message: Message):
 
 
 async def help_callback_handler(callback_query: CallbackQuery):
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id,
                            f'Outline – это ПО с открытым исходным кодом, '
@@ -63,6 +79,7 @@ async def help_callback_handler(callback_query: CallbackQuery):
                            reply_markup=keyboard_client(), disable_web_page_preview=True)
 
 async def show_my_keys(message: Message):
+    await clear_screen(message)
     await message.answer(f'Список ваших ключей. \n'
                          f'Выберите ключ чтобы получить ссылку для доступа \n\n'
                          ,
@@ -70,6 +87,7 @@ async def show_my_keys(message: Message):
     
 
 async def show_info(message: Message):
+    await clear_screen(message)
     user_name = message.chat.first_name
     user_id = message.chat.id
     bot_info = await bot.get_me()
@@ -91,6 +109,7 @@ async def show_info(message: Message):
                          )
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     access_url = await db.get_key_by_label(callback_data['key'])
     await callback_query.answer()
     text = "Ключ не оплачен"
