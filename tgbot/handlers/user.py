@@ -56,7 +56,7 @@ async def p2p_start(message: Message):
 
 
 async def help_handler(message: Message):
-    await clear_screen(message)
+    # await clear_screen(message)
     await message.answer(f'Outline – это ПО с открытым исходным кодом, '
                          f'которое прошло проверку организаций '
                          f'<a href="https://s3.amazonaws.com/outline-vpn/static_downloads/ros-report.pdf">Radically Open Security</a> и '
@@ -79,7 +79,7 @@ async def help_callback_handler(callback_query: CallbackQuery):
                            reply_markup=keyboard_client(), disable_web_page_preview=True)
 
 async def show_my_keys(message: Message):
-    await clear_screen(message)
+    # await clear_screen(message)
     await message.answer(f'Список ваших ключей. \n'
                          f'Выберите ключ чтобы получить ссылку для доступа \n\n'
                          ,
@@ -87,7 +87,7 @@ async def show_my_keys(message: Message):
     
 
 async def show_info(message: Message):
-    await clear_screen(message)
+    # await clear_screen(message)
     user_name = message.chat.first_name
     user_id = message.chat.id
     bot_info = await bot.get_me()
