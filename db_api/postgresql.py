@@ -179,11 +179,11 @@ class Database:
     
     async def get_key_data_by_label(self, label):
         sql = "SELECT (server_id, outline_key_id) FROM vpn_keys WHERE label=$1"
-        return await self.execute(sql, label, fetch=True)
+        return await self.execute(sql, label, fetchval=True)
     
-    async def delete_key(self, key_id):
-        sql = "DELETE FROM vpn_keys WHERE key_id=$1"
-        return await self.execute(sql, key_id, execute=True)
+    async def delete_key(self, key_id, server_id):
+        sql = "DELETE FROM vpn_keys WHERE label=$1 AND server_id=$2"
+        return await self.execute(sql, key_id, server_id, execute=True)
 
     async def update_key(self, key_id, label):
         sql = "UPDATE vpn_keys SET label=($2) WHERE key_id=($1)"

@@ -94,7 +94,7 @@ def keyboard_keys_actions(key_id: int):
 
 async def keyboard_show_users():
     users = await db.show_users()
-    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
 
     for x in users:
         print(f"\n user {x} \n")

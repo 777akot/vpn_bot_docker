@@ -213,8 +213,21 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
 
 async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     key_data = await db.get_key_data_by_label(callback_data['key'])
-    print(f"\n KEY DATA: {key_data[0][0]} : {key_data[0][1]}\n")
-    await bot.send_message(callback_query.from_user.id, f'KEY TO DELETE: {callback_data["key"]}')
+    label = callback_data['key']
+    server_id = key_data[0]
+    outline_key_id = key_data[1]
+    api_link = await db.get_server_key(int(server_id))
+
+    if outline_key_id is None:
+        print(f"\n is None: {outline_key_id} \n")
+        await db.delete_key(label,server_id)
+    else:
+        await outline.delete_key(api_link, outline_key_id)
+        await db.delete_key(label,server_id)
+        print(f"\n is Not None: {outline_key_id} \n")
+
+    print(f"\n KEY DATA: {key_data[0]} : {key_data[1]}\n")
+    await bot.send_message(callback_query.from_user.id, f'Ключ удалён')
 
 
 def register_vpn_handlers(dp: Dispatcher):

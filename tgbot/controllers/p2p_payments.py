@@ -22,26 +22,44 @@ async def make_post_request(url, data, headers):
 async def yoopay():
     print("\nYOOPAY:\n")
     url = f"{yooclient.get('host')}/api/request-payment"
-    phone = "79013530124"
-    account = "4100118191300567"
+    process_url = f"{yooclient.get('host')}/api/process-payment"
+    
+    toaccount = "4100118191300567"
+    # account = "4100118191300567"
     myaccount = "4100118191287950"
     data =urllib.parse.urlencode({
         "pattern_id": "p2p",
-        "to": f"{phone}",
+        "to": f"{toaccount}",
         "amount": 2,
         "comment": "test_payout",
         "message": "test_payout",
         "label": "test"
     })
+
     headers = {
         "Authorization":f"Bearer {yooclient['token']}",
         "Content-Type":"application/x-www-form-urlencoded"
     }
+    
     try:
         response = await make_post_request(url, data, headers)
         # Process the response here
         print(f"\n RESPONSE: {response} \n")
-        return response
+        # return response
+    
+    except aiohttp.ClientError as e:
+        # Handle any exceptions that occurred during the request
+        print(f"An error occurred: {str(e)}")
+
+    request_id = response['request_id']
+    process_data = urllib.parse.urlencode({
+        "request_id": request_id
+    })
+
+    try:
+        res = await make_post_request(process_url, process_data, headers)
+        print(f"\n RESPONSE: {res} \n")
+        return res
     except aiohttp.ClientError as e:
         # Handle any exceptions that occurred during the request
         print(f"An error occurred: {str(e)}")
