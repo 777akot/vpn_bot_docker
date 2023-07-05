@@ -159,6 +159,10 @@ class Database:
         sql = "UPDATE vpn_users SET trial_used=($2) WHERE user_id = $1"
         return await self.execute(sql, user_id, trial_used, execute=True)
     
+    async def show_users(self):
+        sql = "SELECT * FROM vpn_users"
+        return await self.execute(sql, fetch=True)
+    
     # KEYS #
 
     async def add_key(self, owner_id, label, expiration_at, server_id):
@@ -172,6 +176,10 @@ class Database:
     async def get_key_by_label(self, label):
         sql = "SELECT (outline_access_url) FROM vpn_keys WHERE label=$1"
         return await self.execute(sql, label, fetchval=True)
+    
+    async def get_key_data_by_label(self, label):
+        sql = "SELECT (server_id, outline_key_id) FROM vpn_keys WHERE label=$1"
+        return await self.execute(sql, label, fetch=True)
     
     async def delete_key(self, key_id):
         sql = "DELETE FROM vpn_keys WHERE key_id=$1"

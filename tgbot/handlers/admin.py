@@ -7,7 +7,7 @@ from aiogram.types import Message, ChatType, CallbackQuery
 
 from loader import dp, db, outline
 from tgbot.keyboards.callback_data_factory import vpn_callback
-from tgbot.keyboards.inline import keyboard_admin_action, keyboard_servers_list, keyboard_cancel
+from tgbot.keyboards.inline import keyboard_admin_action, keyboard_servers_list, keyboard_cancel, keyboard_show_users
 from tgbot.states.servers_add import AddServerState
 
 from tgbot.controllers.p2p_payments import yoopay
@@ -82,6 +82,11 @@ async def admin_delete_key(callback_query: CallbackQuery, callback_data: Dict[st
     data = await outline.delete_key()
     print("\n admin_delete_key: \n", data)
 
+async def admin_show_users(callback_query: CallbackQuery):
+    await dp.bot.send_message(callback_query.from_user.id, 'Пользователи:',
+                              reply_markup=await keyboard_show_users())
+
+    print("\n admin_show_users: \n")
 
 def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_testpay, commands=["admin_pay"], chat_type=ChatType.PRIVATE, is_admin=True)
@@ -95,3 +100,4 @@ def register_admin(dispatcher: Dispatcher):
                                                chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_delete_server, vpn_callback.filter(action_type='to_delete'), chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_delete_key, lambda c: c.data and c.data == 'delete_key', chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_callback_query_handler(admin_show_users, lambda c: c.data and c.data == "show_users", chat_type=ChatType.PRIVATE, is_admin=True)

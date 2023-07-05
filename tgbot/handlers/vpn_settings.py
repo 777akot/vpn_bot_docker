@@ -14,8 +14,8 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from loader import db, bot, outline, quickpay, key_config, referer_config
-from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback
-from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment
+from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback, vpn_keys_callback
+from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions
 
 from tgbot.controllers import key_controller
 from tgbot.controllers import p2p_payments
@@ -199,6 +199,23 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
     
     # print(f"\n GET TRIAL RESULT: {result}\n")
 
+async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    access_url = await db.get_key_by_label(callback_data['key'])
+    await callback_query.answer()
+    text = "Ключ не оплачен"
+    if access_url != None:
+        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n <code>{access_url}</code> \n \n "
+    await bot.send_message(callback_query.from_user.id,
+                           text,
+                            reply_markup=keyboard_keys_actions(callback_data['key']), disable_web_page_preview=True
+                            )
+
+async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    key_data = await db.get_key_data_by_label(callback_data['key'])
+    print(f"\n KEY DATA: {key_data[0][0]} : {key_data[0][1]}\n")
+    await bot.send_message(callback_query.from_user.id, f'KEY TO DELETE: {callback_data["key"]}')
+
 
 def register_vpn_handlers(dp: Dispatcher):
     dp.register_message_handler(vpn_handler, commands=["vpn"], chat_type=ChatType.PRIVATE)
@@ -208,3 +225,5 @@ def register_vpn_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_new_p2p_key, vpn_callback.filter(action_type='new_p2p_key'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_claimed_key, vpn_p2p_claim_callback.filter(action_type='p2p_claim'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_trial, trial_callback.filter(action_type='trial'), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(select_key, vpn_keys_callback.filter(action_type="showkeys"), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(delete_key, vpn_keys_callback.filter(action_type="delete_key"), chat_type=ChatType.PRIVATE)

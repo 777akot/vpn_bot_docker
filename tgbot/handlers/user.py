@@ -32,9 +32,9 @@ async def clear_screen(message):
 
 async def p2p_start(message: Message):
 
-    await clear_screen(message)
+    # await clear_screen(message)
     print("START")
-    referer_id = extract_referer_id(message.text) or None
+    referer_id = extract_referer_id(message.text)
     ref = referer_id
     if referer_id is not None:
         # await message.answer('referer_id: ' + referer_id)
@@ -108,15 +108,6 @@ async def show_info(message: Message):
                          f'{len(referal_users)} из них оплатили: {paid_referal_users}'
                          )
 
-async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
-    access_url = await db.get_key_by_label(callback_data['key'])
-    await callback_query.answer()
-    text = "Ключ не оплачен"
-    if access_url != None:
-        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n <code>{access_url}</code>"
-    await bot.send_message(callback_query.from_user.id,text              
-                            )
 
 def register_user(dp: Dispatcher):
     # dp.register_message_handler(user_start, commands=["start"], chat_type=ChatType.PRIVATE)
@@ -124,6 +115,5 @@ def register_user(dp: Dispatcher):
     dp.register_message_handler(help_handler, commands=["help"], chat_type=ChatType.PRIVATE)
     dp.register_message_handler(show_my_keys, commands=["mykeys"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(help_callback_handler, lambda c: c.data == 'why', chat_type=ChatType.PRIVATE)
-    dp.register_callback_query_handler(select_key, vpn_keys_callback.filter(action_type="showkeys"), chat_type=ChatType.PRIVATE)
     dp.register_message_handler(show_info, commands=["info"], chat_type=ChatType.PRIVATE)
     

@@ -85,15 +85,31 @@ async def keyboard_keys_list(action_type: str, user_id: int):
                                                                                           key=f'{x[3]}')))
     return keyboard
 
-# def keyboard_p2p_buy()
+def keyboard_keys_actions(key_id: int):
+    print(f"\n key_id {key_id} \n")
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.insert(InlineKeyboardButton(f'❌Удалить', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
+    keyboard.insert(InlineKeyboardButton(f'💲Оплатить', callback_data=f"cancel"))
+    return keyboard
+
+async def keyboard_show_users():
+    users = await db.show_users()
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
+    for x in users:
+        print(f"\n user {x} \n")
+        keyboard.insert(InlineKeyboardButton(f'{x[0]}: ID: {x[1]} Name: {x[2]} Триал исп: {x[5]} Оплатил: {x[6]}', callback_data=f'cancel'))
+    return keyboard
 
 def keyboard_admin_action():
     keyboard = InlineKeyboardMarkup(row_width=2)
     btn_add_server = InlineKeyboardButton(f'Добавить сервер', callback_data='add_server')
     btn_delete_server = InlineKeyboardButton(f'Удалить сервер', callback_data='delete_server')
+    btn_show_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_users')
     btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
-    keyboard.add(btn_add_server, btn_delete_server, btn_cancel)
+    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_cancel)
     return keyboard
+
 
 def keyboard_cancel():
     return InlineKeyboardMarkup().add(InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel"))
