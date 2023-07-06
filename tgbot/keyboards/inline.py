@@ -66,7 +66,7 @@ def keyboard_client():
 
 
 async def keyboard_servers_list(action_type: str):
-    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
     for x in await db.get_servers():
         keyboard.insert(InlineKeyboardButton(f'{x[0][1]}', callback_data=vpn_callback.new(action_type=action_type,
                                                                                           server=f'{x[0][0]}')))
@@ -76,7 +76,7 @@ async def keyboard_servers_list(action_type: str):
     return keyboard
 
 async def keyboard_keys_list(action_type: str, user_id: int):
-    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
     keys = await key_controller.get_all_keys(user_id)
 
     for x in keys:
@@ -87,9 +87,9 @@ async def keyboard_keys_list(action_type: str, user_id: int):
 
 def keyboard_keys_actions(key_id: int):
     print(f"\n key_id {key_id} \n")
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    keyboard.insert(InlineKeyboardButton(f'❌Удалить', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
-    keyboard.insert(InlineKeyboardButton(f'💲Оплатить', callback_data=f"cancel"))
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
+    keyboard.insert(InlineKeyboardButton(f'💲 Оплатить', callback_data=f"cancel"))
+    keyboard.insert(InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
     return keyboard
 
 async def keyboard_show_users():
@@ -102,7 +102,7 @@ async def keyboard_show_users():
     return keyboard
 
 def keyboard_admin_action():
-    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
     btn_add_server = InlineKeyboardButton(f'Добавить сервер', callback_data='add_server')
     btn_delete_server = InlineKeyboardButton(f'Удалить сервер', callback_data='delete_server')
     btn_show_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_users')

@@ -155,6 +155,10 @@ class Database:
         sql = "SELECT (trial_used) FROM vpn_users WHERE user_id = $1"
         return await self.execute(sql, user_id, fetchval=True)
     
+    async def update_user_payment_status(self, user_id, bought):
+        sql = "UPDATE vpn_users SET bought=($2) WHERE owner_id=($1)"
+        return await self.execute(sql, user_id, bought, execute=True)
+
     async def set_trial_used(self, user_id, trial_used):
         sql = "UPDATE vpn_users SET trial_used=($2) WHERE user_id = $1"
         return await self.execute(sql, user_id, trial_used, execute=True)
@@ -225,3 +229,7 @@ class Database:
     async def update_payment_status_by_id(self, user_id, label, sum_paid):
         sql = "UPDATE vpn_payments SET sum_paid=($3) WHERE user_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, sum_paid, execute=True)
+    
+    async def update_payment_referer_status_by_id(self, user_id, label, referer_payout_paid):
+        sql = "UPDATE vpn_payments SET referer_payout_paid=($3) WHERE user_id=($1) AND label=($2)"
+        return await self.execute(sql, user_id, label, referer_payout_paid, execute=True)

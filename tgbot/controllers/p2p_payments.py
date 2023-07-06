@@ -3,6 +3,8 @@
 
 # import requests
 
+import math
+
 import urllib
 from loader import bot, db, yooclient, quickpay
 from yoomoney import Client, Quickpay
@@ -19,21 +21,18 @@ async def make_post_request(url, data, headers):
                 print("Exception: ", e)
             return response_data
 
-async def yoopay():
+async def yoopay(toaccount, amount, label):
     print("\nYOOPAY:\n")
     url = f"{yooclient.get('host')}/api/request-payment"
     process_url = f"{yooclient.get('host')}/api/process-payment"
     
-    toaccount = "4100118191300567"
-    # account = "4100118191300567"
-    myaccount = "4100118191287950"
     data =urllib.parse.urlencode({
         "pattern_id": "p2p",
         "to": f"{toaccount}",
-        "amount": 2,
+        "amount": amount,
         "comment": "test_payout",
         "message": "test_payout",
-        "label": "test"
+        "label": label
     })
 
     headers = {
@@ -64,6 +63,51 @@ async def yoopay():
         # Handle any exceptions that occurred during the request
         print(f"An error occurred: {str(e)}")
 
+async def referal_payment(user_id,label):
+    try:
+        print(f"\nREFERAL PAYMENT\n")
+        payment = await db.get_payment_by_id(label,int(user_id))
+        referer_id = payment[0]['referer_id']
+        referer_payout_percent = payment[0]['referer_payout']
+        referer_payout_paid = bool(payment[0]['referer_payout_paid'])
+        payment_sum = payment[0]['sum']
+        sum_paid = bool(payment[0]['sum_paid'])
+        
+
+        print(f"\n Payment: {payment}\n"
+            f"\n Referer ID: {referer_id}"
+            f"\n Referer Payout Percent: {referer_payout_percent}"
+            f"\n Referer Payout Paid: {referer_payout_paid}"
+            f"\n Sum: {payment_sum}"
+            f"\n Sum Paid: {sum_paid}"
+            )
+
+        if not sum_paid:
+            error_message = "Sum is not paid"
+            raise Exception(error_message)
+
+        if referer_payout_paid:
+            error_message = "Referer payout is already paid"
+            raise Exception(error_message)
+
+        if referer_id:
+            referer_data = await db.get_user_by_id(referer_id)
+            referer_account = referer_data[0]['user_account']
+            print(f"\n Referer: \n"
+            f"\n User: {referer_id}"
+            f"\n Account: {referer_account}"
+            )
+
+        referer_payout_sum = max(2, math.floor(payment_sum * referer_payout_percent / 100))
+        print(f"\n Payout Sum: {referer_payout_sum}\n")
+
+        await yoopay(referer_account, referer_payout_sum, label)
+
+        await db.update_payment_referer_status_by_id(user_id, label, bool(True))
+
+    except Exception as e:
+        print(f"ERROR: {e}")
+    return
 
 async def create_payment(label, price: int):
     qp = Quickpay(
@@ -95,6 +139,8 @@ async def check_payment(user_id, label):
                 print ("operation.status: SUCCESS")
                 await db.update_payment_status(user_id, label, bool(True))
                 await db.update_payment_status_by_id(user_id, label, bool(True))
+                await db.update_user_payment_status(user_id, bool(True))
+                # await referal_payment(user_id,label)
                 return True
                 # await bot.send_message(call.message.chat.id,
                 #                        MESSAGES['successful_payment'])

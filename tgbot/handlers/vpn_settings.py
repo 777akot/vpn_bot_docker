@@ -22,25 +22,25 @@ from tgbot.controllers import p2p_payments
 
 
 async def vpn_handler(message: Message):
-    await bot.delete_message(message.chat.id, message.message_id)
+    # await bot.delete_message(message.chat.id, message.message_id)
     await bot.send_message(message.from_user.id, f'Выберите страну сервера', reply_markup=await keyboard_servers_list('new_key'))
 
 
 async def vpn_callback_handler(callback_query: CallbackQuery):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
                            reply_markup=await keyboard_servers_list('new_key'))
 
 async def vpn_p2p_callback_handler(callback_query: CallbackQuery):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
                            reply_markup=await keyboard_servers_list('new_p2p_key'))
 
 
 async def get_new_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     try:
         data = await outline.create_key(await db.get_server_key(int(callback_data['server'])))
         await bot.send_message(callback_query.from_user.id,
@@ -57,7 +57,7 @@ async def get_new_key(callback_query: CallbackQuery, callback_data: Dict[str, st
 
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
 
     key_controller.new_key()
@@ -87,7 +87,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
 
     print(f'\n REFERER : {referer_id}, {referer_payout} \n')
 
-    await db.add_payment(label, owner_id, referer_id, price, referer_payout)
+    await db.add_payment(label, owner_id, int(referer_id), price, int(referer_payout))
 
     # return
     #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
@@ -200,7 +200,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
     # print(f"\n GET TRIAL RESULT: {result}\n")
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     access_url = await db.get_key_by_label(callback_data['key'])
     await callback_query.answer()
     text = "Ключ не оплачен"

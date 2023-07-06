@@ -66,7 +66,7 @@ async def help_handler(message: Message):
 
 
 async def help_callback_handler(callback_query: CallbackQuery):
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id,
                            f'Outline – это ПО с открытым исходным кодом, '
