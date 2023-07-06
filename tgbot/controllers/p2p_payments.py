@@ -100,7 +100,11 @@ async def referal_payment(user_id,label):
 
         referer_payout_sum = max(2, math.floor(payment_sum * referer_payout_percent / 100))
         print(f"\n Payout Sum: {referer_payout_sum}\n")
-
+        
+        if not referer_account:
+            error_message = "No Referer Account"
+            raise Exception(error_message)
+        
         await yoopay(referer_account, referer_payout_sum, label)
 
         await db.update_payment_referer_status_by_id(user_id, label, bool(True))

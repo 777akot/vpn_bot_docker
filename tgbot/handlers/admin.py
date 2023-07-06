@@ -9,6 +9,7 @@ from loader import dp, db, outline
 from tgbot.keyboards.callback_data_factory import vpn_callback
 from tgbot.keyboards.inline import keyboard_admin_action, keyboard_servers_list, keyboard_cancel, keyboard_show_users
 from tgbot.states.servers_add import AddServerState
+from tgbot.states.partners_add import AddPartnerState
 
 from tgbot.controllers.p2p_payments import yoopay,referal_payment
 
@@ -93,6 +94,31 @@ async def admin_test_referal(message: Message):
     label = "aoqb8wxvyk"
     await referal_payment(user_id,label)
 
+async def admin_add_partner(message: Message, state: FSMContext):
+    print("\n ADMIN ADD PARTNER: \n")
+    await state.set_state(AddPartnerState.user_id)
+    await dp.bot.send_message(message.from_user.id, f'Введите id Пользователя:',
+                            reply_markup=keyboard_cancel())
+
+async def admin_save_partner(message: Message, state: FSMContext):
+    user_id = message.text.strip()
+    if not user_id.isdigit():
+        await dp.bot.send_message(message.from_user.id, 'Не похоже на номер аккаунта',reply_markup=keyboard_cancel())
+
+    candidate = await db.get_user_by_id(int(user_id))
+    if not candidate or not len(candidate):
+        await dp.bot.send_message(message.from_user.id, 'Нет такого пользователя',reply_markup=keyboard_cancel())
+    else:
+        res = ""
+        # state_data = await state.get_data()
+        # server_name = state_data['account_number']
+        await state.update_data(user_id=user_id)
+        # # await db.add_server(server_name, url, int(price))
+        await db.add_partner(int(user_id), "partner")
+        await dp.bot.send_message(message.from_user.id, f'Аккаунт {user_id} добавлен')
+        await state.finish()
+
+
 def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_testpay, commands=["admin_pay"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_start, commands=["admin"], chat_type=ChatType.PRIVATE, is_admin=True)
@@ -109,3 +135,5 @@ def register_admin(dispatcher: Dispatcher):
 
 
     dispatcher.register_message_handler(admin_test_referal, commands=["admin_referal"], chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_callback_query_handler(admin_add_partner, lambda c: c.data and c.data == "add_partner", chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_message_handler(admin_save_partner, chat_type=ChatType.PRIVATE, state=AddPartnerState.user_id)

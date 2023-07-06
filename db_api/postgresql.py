@@ -215,6 +215,18 @@ class Database:
         sql = "SELECT (bought) FROM vpn_users WHERE referer_id=($1)"
         return await self.execute(sql, user_id, fetch=True)
     
+    async def check_referal(self, user_id, referal_role):
+        sql = "SELECT * FROM vpn_users WHERE user_id=($1) AND referal_role=($2)"
+        return await self.execute(sql, user_id, referal_role, fetch=True)
+    
+    async def add_partner(self, user_id, referal_role):
+        sql = "UPDATE vpn_users SET referal_role=($2) WHERE user_id=($1)"
+        return await self.execute(sql, user_id, referal_role, execute=True)
+    
+    async def add_account(self, user_id, user_account):
+        sql = "UPDATE vpn_users SET user_account=($2) WHERE user_id=($1)"
+        return await self.execute(sql, user_id, user_account, execute=True)
+    
 
     # PAYMENTS
 

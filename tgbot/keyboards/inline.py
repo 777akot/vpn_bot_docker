@@ -106,10 +106,17 @@ def keyboard_admin_action():
     btn_add_server = InlineKeyboardButton(f'Добавить сервер', callback_data='add_server')
     btn_delete_server = InlineKeyboardButton(f'Удалить сервер', callback_data='delete_server')
     btn_show_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_users')
+    btn_add_partner = InlineKeyboardButton(f'Добавить партнера', callback_data='add_partner')
     btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
-    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_cancel)
+    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_add_partner, btn_cancel)
     return keyboard
 
+def keyboard_partner_action():
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
+    btn_add_account = InlineKeyboardButton(f'Привязать Yoomoney', callback_data='add_account')
+    btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
+    keyboard.add(btn_add_account, btn_cancel)
+    return keyboard
 
 def keyboard_cancel():
     return InlineKeyboardMarkup().add(InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel"))

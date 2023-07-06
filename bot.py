@@ -12,6 +12,7 @@ def register_all_filters(dispatcher):
 
 def register_all_handlers(dp):
     from tgbot.handlers.admin import register_admin
+    from tgbot.handlers.partner import register_partner
     from tgbot.handlers.cancel import register_cancel
     from tgbot.handlers.error_handler import register_error_handler
     from tgbot.handlers.user import register_user
@@ -19,6 +20,7 @@ def register_all_handlers(dp):
 
     register_cancel(dp)
     register_admin(dp)
+    register_partner(dp)
     register_user(dp)
     register_vpn_handlers(dp)
     register_error_handler(dp)
