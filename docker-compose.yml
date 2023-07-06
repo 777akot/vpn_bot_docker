@@ -62,7 +62,7 @@ services:
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: noemail@noemail.com
-      PGADMIN_DEFAULT_PASSWORD: "${DB_PASS}"
+      PGADMIN_DEFAULT_PASSWORD: "${PG_PASS}"
     ports:
       - "5050:80"
     depends_on:
