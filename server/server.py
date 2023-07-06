@@ -1,6 +1,7 @@
 import asyncio
 from aiohttp import web
 from server_controllers.key_controller import KeyController
+import requests
 
 class Handler:
     def __init__(self):

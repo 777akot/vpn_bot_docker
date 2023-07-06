@@ -44,7 +44,7 @@ services:
     networks:
       - vpn_bot
     ports:
-      - "5432:5432"
+      - "4356:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 10s
@@ -89,6 +89,7 @@ services:
       - postgres
     ports:
       - 3030:3030
+      - 6060:6060
   web_server:
     container_name: "web_server"
     stop_signal: SIGINT
