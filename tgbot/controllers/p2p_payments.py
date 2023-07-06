@@ -140,7 +140,7 @@ async def check_payment(user_id, label):
                 await db.update_payment_status(user_id, label, bool(True))
                 await db.update_payment_status_by_id(user_id, label, bool(True))
                 await db.update_user_payment_status(user_id, bool(True))
-                # await referal_payment(user_id,label)
+                await referal_payment(user_id,label)
                 return True
                 # await bot.send_message(call.message.chat.id,
                 #                        MESSAGES['successful_payment'])

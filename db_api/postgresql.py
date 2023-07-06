@@ -156,7 +156,7 @@ class Database:
         return await self.execute(sql, user_id, fetchval=True)
     
     async def update_user_payment_status(self, user_id, bought):
-        sql = "UPDATE vpn_users SET bought=($2) WHERE owner_id=($1)"
+        sql = "UPDATE vpn_users SET bought=($2) WHERE user_id=($1)"
         return await self.execute(sql, user_id, bought, execute=True)
 
     async def set_trial_used(self, user_id, trial_used):
