@@ -36,7 +36,7 @@ async def get_all_keys(user_id):
     
     
     
-    result = [(await get_server_name(server), get_active(active), get_paid(bought),label, outline_key_id) for server, active, bought, label, outline_key_id in predefined_keys]
+    result = [(await get_server_name(server), get_active(active), get_paid(bought), label, outline_key_id) for server, active, bought, label, outline_key_id in predefined_keys]
     
     
     return result
