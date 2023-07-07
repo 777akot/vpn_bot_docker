@@ -21,6 +21,8 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 outline = OutlineManager()
 
+admin_ids = config.tg_bot.admin_ids
+
 quickpay = qp(
     receiver=config.yoomoney.receiver,
     quickpay_form='shop',

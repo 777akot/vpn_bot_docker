@@ -64,6 +64,7 @@ async def yoopay(toaccount, amount, label):
         print(f"An error occurred: {str(e)}")
 
 async def referal_payment(user_id,label):
+    #ВЫПЛАТА ПО РЕФЕРАЛКЕ
     try:
         print(f"\nREFERAL PAYMENT\n")
         payment = await db.get_payment_by_id(label,int(user_id))
@@ -141,9 +142,13 @@ async def check_payment(user_id, label):
             #ЕСЛИ ОПЛАТА ПРОШЛА - МЕНЯЕТ PAYMENT STATUS (BOUGHT)
             if operation.status == 'success':
                 print ("operation.status: SUCCESS")
+                #УКАЗЫВАЕМ ЧТО КЛЮЧ ОПЛАЧЕН
                 await db.update_payment_status(user_id, label, bool(True))
+                #УКАЗЫВАЕМ ЧТО ПЛАТЕЖКА ОПЛАЧЕНА
                 await db.update_payment_status_by_id(user_id, label, bool(True))
+                #УКАЗЫВАЕМ У ПОЛЬЗОВАТЕЛЯ ЧТО ОН СОВЕРШИЛ ОПЛАТУ ХОТЬ РАЗ
                 await db.update_user_payment_status(user_id, bool(True))
+                #ВЫЗОВ ВЫПЛАТЫ ПО РЕФЕРАЛКЕ
                 await referal_payment(user_id,label)
                 return True
                 # await bot.send_message(call.message.chat.id,

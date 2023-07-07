@@ -174,7 +174,7 @@ class Database:
         return await self.execute(sql, owner_id, label, expiration_at, server_id, execute=True)
     
     async def get_all_keys(self, user_id):
-        sql = "SELECT (server_id,active,bought,label) FROM vpn_keys WHERE owner_id = $1"
+        sql = "SELECT (server_id,active,bought,label,outline_key_id) FROM vpn_keys WHERE owner_id = $1"
         return await self.execute(sql, user_id, fetch=True)
     
     async def get_key_by_label(self, label):
@@ -237,6 +237,10 @@ class Database:
     async def get_payment_by_id(self, label, user_id):
         sql = "SELECT * FROM vpn_payments WHERE label=$1 AND user_id=$2"
         return await self.execute(sql, label, user_id, fetch=True)
+
+    async def get_payment_by_referer_id(self, referer_id):
+        sql = "SELECT (sum, referer_payout) FROM vpn_payments WHERE referer_id=$1 AND referer_payout_paid='True'"
+        return await self.execute(sql, referer_id, fetch=True)
     
     async def update_payment_status_by_id(self, user_id, label, sum_paid):
         sql = "UPDATE vpn_payments SET sum_paid=($3) WHERE user_id=($1) AND label=($2)"

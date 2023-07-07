@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, ChatType, CallbackQuery
 
 from loader import dp, db, outline
-from tgbot.keyboards.callback_data_factory import vpn_callback
+from tgbot.keyboards.callback_data_factory import vpn_callback, partner_join_callback
 from tgbot.keyboards.inline import keyboard_admin_action, keyboard_servers_list, keyboard_cancel, keyboard_show_users
 from tgbot.states.servers_add import AddServerState
 from tgbot.states.partners_add import AddPartnerState
@@ -118,6 +118,15 @@ async def admin_save_partner(message: Message, state: FSMContext):
         await dp.bot.send_message(message.from_user.id, f'Аккаунт {user_id} добавлен')
         await state.finish()
 
+async def partner_join_approve(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+    await dp.bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    partner_id = callback_data['partner_id']
+    await db.add_partner(int(partner_id), "partner")
+    print(f'\n partner_join_approve \n {partner_id}')
+    await dp.bot.send_message(partner_id, 'Поздравляем ваша заявка одобрена! Теперь вы можете пользоваться личным кабинетом партнёра используя команду /partner')
+    await dp.bot.send_message(callback_query.from_user.id, f'{partner_id} теперь Партнер')
+
+
 
 def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_testpay, commands=["admin_pay"], chat_type=ChatType.PRIVATE, is_admin=True)
@@ -137,3 +146,8 @@ def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_test_referal, commands=["admin_referal"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_add_partner, lambda c: c.data and c.data == "add_partner", chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_save_partner, chat_type=ChatType.PRIVATE, state=AddPartnerState.user_id)
+
+    dispatcher.register_callback_query_handler(partner_join_approve, partner_join_callback.filter(action_type='partner_join_approve'), chat_type=ChatType.PRIVATE, is_admin=True)
+
+    
+

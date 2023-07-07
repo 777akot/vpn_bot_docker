@@ -3,7 +3,7 @@ import logging
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from loader import db
-from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback
+from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback
 
 from tgbot.controllers import key_controller
 
@@ -108,8 +108,9 @@ def keyboard_admin_action():
     btn_delete_server = InlineKeyboardButton(f'Удалить сервер', callback_data='delete_server')
     btn_show_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_users')
     btn_add_partner = InlineKeyboardButton(f'Добавить партнера', callback_data='add_partner')
+    btn_send_invite = InlineKeyboardButton(f'Отправить инвайт', callback_data='send_invite')
     btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
-    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_add_partner, btn_cancel)
+    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_add_partner, btn_send_invite, btn_cancel)
     return keyboard
 
 def keyboard_partner_action():
@@ -117,6 +118,20 @@ def keyboard_partner_action():
     btn_add_account = InlineKeyboardButton(f'Привязать Yoomoney', callback_data='add_account')
     btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
     keyboard.add(btn_add_account, btn_cancel)
+    return keyboard
+
+def keyboard_partner_join():
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
+    btn_submit = InlineKeyboardButton(f'Подать заявку', callback_data='partner_join')
+    btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
+    keyboard.add(btn_submit, btn_cancel)
+    return keyboard
+
+def keyboard_admin_partner_submit(partner_id: str):
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
+    btn_submit = InlineKeyboardButton(f'Подтвердить', callback_data=partner_join_callback.new(action_type='partner_join_approve',partner_id=partner_id))
+    btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
+    keyboard.add(btn_submit, btn_cancel)
     return keyboard
 
 def keyboard_cancel():
