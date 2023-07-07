@@ -77,17 +77,17 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
     print(f'\n USER DATA [] : {user_data[0]["user_name"]}')
 
     trial_used = user_data[0]['trial_used']
-    referer_id = user_data[0]["referer_id"]
+    referer_id = int(user_data[0]["referer_id"]) if user_data[0].get("referer_id") else None
     referer_payout = None
     
     if referer_id != None:
         print(f'\n REFERER EXIST: {referer_id}')
-        referer_payout = referer_config.get('payout_percent')
+        referer_payout = int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None
         
 
     print(f'\n REFERER : {referer_id}, {referer_payout} \n')
 
-    await db.add_payment(label, owner_id, int(referer_id), price, int(referer_payout))
+    await db.add_payment(label, owner_id, referer_id, price, referer_payout)
 
     # return
     #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
