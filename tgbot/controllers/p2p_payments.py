@@ -99,7 +99,7 @@ async def referal_payment(user_id,label):
             f"\n Account: {referer_account}"
             )
 
-        referer_payout_sum = max(2, math.floor(payment_sum * referer_payout_percent / 100))
+        referer_payout_sum = payment_sum - max(2, math.floor(payment_sum * referer_payout_percent / 100))
         print(f"\n Payout Sum: {referer_payout_sum}\n")
         
         if not referer_account:
