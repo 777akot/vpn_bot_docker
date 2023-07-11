@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, ChatType, CallbackQuery
 
 from loader import dp, db, outline
-from tgbot.keyboards.callback_data_factory import vpn_callback, partner_join_callback
+from tgbot.keyboards.callback_data_factory import vpn_callback, partner_join_callback, admin_send_notification_callback
 from tgbot.keyboards.inline import keyboard_admin_action, keyboard_servers_list, keyboard_cancel, keyboard_show_users
 from tgbot.states.servers_add import AddServerState
 from tgbot.states.partners_add import AddPartnerState
@@ -126,6 +126,11 @@ async def partner_join_approve(callback_query: CallbackQuery, callback_data: Dic
     await dp.bot.send_message(partner_id, 'Поздравляем ваша заявка одобрена! Теперь вы можете пользоваться личным кабинетом партнёра используя команду /partner')
     await dp.bot.send_message(callback_query.from_user.id, f'{partner_id} теперь Партнер')
 
+async def admin_send_notification(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+    users = await db.show_users()
+    for x in users:
+        print(f"USER: {x}")
+        await dp.bot.send_message(x['user_id'],'Привет')
 
 
 def register_admin(dispatcher: Dispatcher):
@@ -148,6 +153,5 @@ def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_save_partner, chat_type=ChatType.PRIVATE, state=AddPartnerState.user_id)
 
     dispatcher.register_callback_query_handler(partner_join_approve, partner_join_callback.filter(action_type='partner_join_approve'), chat_type=ChatType.PRIVATE, is_admin=True)
-
-    
+    dispatcher.register_callback_query_handler(admin_send_notification, admin_send_notification_callback.filter(action_type='send_notification'), chat_type=ChatType.PRIVATE, is_admin=True)
 

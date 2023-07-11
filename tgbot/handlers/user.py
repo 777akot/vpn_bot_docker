@@ -7,9 +7,11 @@ from typing import Dict
 
 from loader import bot, db
 from tgbot.keyboards.callback_data_factory import vpn_keys_callback
-from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_start, keyboard_keys_list, keyboard_client
+from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_start, keyboard_keys_list, keyboard_client, permanent_keyboard
 
 from tgbot.controllers.referal import get_referal_users
+from tgbot.handlers.partner import check_partner, partner_start
+
 
 def extract_referer_id(text):
     # Extracts referer id from the sent /start command.
@@ -46,13 +48,15 @@ async def p2p_start(message: Message):
         print(f'error: {e}')
         pass
     finally:
-        await message.answer(f'Привет, {message.chat.first_name}! \n\n'
-                             f'Чтобы начать пользоваться VPN, вам необходимо скачать клиент Outline для вашего устройства. \n'
+        await bot.send_message(chat_id=message.chat.id,text=f"Привет, {message.chat.first_name}! \n\n",reply_markup=permanent_keyboard())
+        await message.answer(f'🕹 Главное меню \n\n'
+                             f'Чтобы начать пользоваться VPN, вам необходимо скачать клиент Outline для вашего устройства. \n\n'
                              f'Дальше необходимо нажать кнопку “Доступ к VPN“ и выбрать страну.\n\n'
-                             f'Получить информацию об аккаунте: /info \n'
+                             f'Обязательно добавляйтесь в чат поддержки\n\n'
                              f'\n\n'
+
                              ,
-                        reply_markup=keyboard_p2p_start(), disable_web_page_preview=True)
+                        reply_markup=keyboard_p2p_start(), disable_web_page_preview=False)
 
 
 async def help_handler(message: Message):
@@ -101,13 +105,44 @@ async def show_info(message: Message):
                 paid_referal_users += 1
     
     await message.answer(f'Пользователь {user_name}: \n\n'
-                         f'Список ваших ключей: /mykeys \n\n'
+                         f'<b>Зовите друзей и получайте бесплатный месяц за каждого приглашенного</b>*\n\n'
                          f'Ваша реферальная ссылка: \n'
-                         f'<code>{ref_link}</code> \n'
+                         f'<code>{ref_link}</code> \n\n'
                          f'Количество привлеченных пользователей: \n'
                          f'{len(referal_users)} из них оплатили: {paid_referal_users}'
-                         )
+                         f'\n\n'
+                         f'* - Учитываются только пользователи оплатившие подписку'
+                         ,parse_mode="HTML")
 
+async def text_process(message: Message):
+    if message.text == '🕹 Главное меню':
+        await bot.delete_message(message.chat.id, message.message_id)
+        msg = message
+        msg.text = "/start"
+        await p2p_start(msg)
+    if message.text == '🗝 Мои ключи':
+        await bot.delete_message(message.chat.id, message.message_id)
+        msg = message
+        msg.text = "/mykeys"
+        await show_my_keys(msg)
+
+async def referals_handler(callback_query: CallbackQuery):
+    print(f"\n Referals_handler \n")
+    ispartner = await check_partner(callback_query.from_user.id)
+    if ispartner:
+        print(f"\n You are partner \n")
+        msg = callback_query.message
+        msg.from_user.id = callback_query.from_user.id
+        msg.text = "/partner"
+        await partner_start(msg)
+        return
+    else:
+        print(f"\n You are NOT a partner \n")
+        msg = callback_query.message
+        msg.from_user.id = callback_query.from_user.id
+        msg.text = "/info"
+        await show_info(msg)
+        return
 
 def register_user(dp: Dispatcher):
     # dp.register_message_handler(user_start, commands=["start"], chat_type=ChatType.PRIVATE)
@@ -116,4 +151,6 @@ def register_user(dp: Dispatcher):
     dp.register_message_handler(show_my_keys, commands=["mykeys"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(help_callback_handler, lambda c: c.data == 'why', chat_type=ChatType.PRIVATE)
     dp.register_message_handler(show_info, commands=["info"], chat_type=ChatType.PRIVATE)
+    dp.register_message_handler(text_process, content_types=["text"], chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(referals_handler, lambda c: c.data == 'referals', chat_type=ChatType.PRIVATE)
     

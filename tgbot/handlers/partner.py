@@ -18,12 +18,13 @@ async def check_partner(user_id):
         partner = await db.check_referal(user_id, "partner")
         if not partner:
             return False
-        else: 
+        else:
             return True
     except Exception as e:
         print(f"ERROR: {e}")
 
 async def get_user_data(user_id):
+    print(f"Get_user_data: {user_id}")
     try:
         user = await db.get_user_by_id(user_id)
         referals = await db.get_referal_users(user_id)

@@ -1,9 +1,9 @@
 import logging
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from loader import db
-from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback
+from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback
 
 from tgbot.controllers import key_controller
 
@@ -18,12 +18,25 @@ def keyboard_start():
     return keyboard.row(inline_btn_1, inline_btn_2)
 
 def keyboard_p2p_start():
-    keyboard = InlineKeyboardMarkup()
+    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
     inline_btn_1 = InlineKeyboardButton(f'Доступ к VPN',
                                         callback_data=vpn_p2p_callback.new(action_type='vpn_settings', server='no'))
     inline_btn_2 = InlineKeyboardButton(f'Скачать клиент', callback_data='why')
-    inline_btn_3 = InlineKeyboardButton(text="Чат поддержки", url="https://t.me/vpnhubsupportchat")
-    return keyboard.row(inline_btn_1, inline_btn_2, inline_btn_3)
+    inline_btn_3 = InlineKeyboardButton(f'Партнерская программа', callback_data='referals')
+    inline_btn_4 = InlineKeyboardButton(text="Чат поддержки", url="https://t.me/vpnhubsupportchat")
+
+    return keyboard.add(inline_btn_1, inline_btn_2, inline_btn_3, inline_btn_4)
+
+def permanent_keyboard():
+    perm_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    # button1 = KeyboardButton(text=f'Доступ к VPN',
+    #                                     callback_data=vpn_p2p_callback.new(action_type='vpn_settings', server='no'))
+    # button2 = KeyboardButton(text=f'Скачать клиент', callback_data='why')
+    # button3 = KeyboardButton(text=f"Чат поддержки", url="https://t.me/vpnhubsupportchat")
+    button1 = KeyboardButton("🕹 Главное меню")
+    button2 = KeyboardButton("🗝 Мои ключи")
+    perm_keyboard.add(button1, button2)
+    return perm_keyboard
 
 async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, server: str):
     keyboard = InlineKeyboardMarkup()
@@ -108,7 +121,7 @@ def keyboard_admin_action():
     btn_delete_server = InlineKeyboardButton(f'Удалить сервер', callback_data='delete_server')
     btn_show_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_users')
     btn_add_partner = InlineKeyboardButton(f'Добавить партнера', callback_data='add_partner')
-    btn_send_invite = InlineKeyboardButton(f'Отправить инвайт', callback_data='send_invite')
+    btn_send_invite = InlineKeyboardButton(f'Отправить сообщение', callback_data=admin_send_notification_callback.new(action_type='send_notification'))
     btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
     keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_add_partner, btn_send_invite, btn_cancel)
     return keyboard
