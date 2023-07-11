@@ -108,11 +108,16 @@ def keyboard_keys_actions(key_id: int):
 async def keyboard_show_users():
     users = await db.show_users()
     keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
- 
+    def show_emoji(value):
+        if value == True:
+            return "✔️"
+        else:
+            if value == False:
+                return "❌"
 
     for x in users:
         print(f"\n user {x} \n")
-        keyboard.insert(InlineKeyboardButton(f'{x[0]}: ID: {x[1]} Name: {x[2]} Триал исп: {x[5]} Оплатил: {x[6]}', callback_data=f'cancel'))
+        keyboard.insert(InlineKeyboardButton(f'{x[1]}: {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
     return keyboard
 
 def keyboard_admin_action():
