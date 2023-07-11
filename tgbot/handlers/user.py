@@ -84,10 +84,14 @@ async def help_callback_handler(callback_query: CallbackQuery):
 
 async def show_my_keys(message: Message):
     # await clear_screen(message)
-    await message.answer(f'Список ваших ключей. \n'
+    keys = await db.get_all_keys(message.chat.id)
+    if len(keys) > 0:
+        await message.answer(f'Список ваших ключей. \n'
                          f'Выберите ключ чтобы получить ссылку для доступа \n\n'
                          ,
                          reply_markup=await keyboard_keys_list('showkeys',message.chat.id), disable_web_page_preview=True)
+    else:
+        await message.answer(f'У вас пока что нет ключей доступа. Перейдите в главное меню чтобы создать новый ключ.')
     
 
 async def show_info(message: Message):
