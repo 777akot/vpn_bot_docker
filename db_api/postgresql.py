@@ -148,7 +148,7 @@ class Database:
         return await self.execute(sql, user_id, user_name, referer_id, execute=True)
     
     async def get_user_by_id(self, user_id):
-        sql = "SELECT * FROM vpn_users WHERE user_id = $1 ORDER BY created_at ASC"
+        sql = "SELECT * FROM vpn_users WHERE user_id = $1"
         return await self.execute(sql, user_id, fetch=True)
     
     async def check_trial(self, user_id):
@@ -164,7 +164,7 @@ class Database:
         return await self.execute(sql, user_id, trial_used, execute=True)
     
     async def show_users(self):
-        sql = "SELECT * FROM vpn_users"
+        sql = "SELECT * FROM vpn_users ORDER BY created_at ASC"
         return await self.execute(sql, fetch=True)
     
     # KEYS #
