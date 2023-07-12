@@ -127,10 +127,12 @@ async def partner_join_approve(callback_query: CallbackQuery, callback_data: Dic
     await dp.bot.send_message(callback_query.from_user.id, f'{partner_id} теперь Партнер')
 
 async def admin_send_notification(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+    print(f"\n SEND NOTIFICATION \n")
     users = await db.show_users()
-    for x in users:
-        print(f"USER: {x}")
-        await dp.bot.send_message(x['user_id'],'Привет')
+    
+    # for x in users:
+    #     print(f"USER: {x}")
+    #     await dp.bot.send_message(x['user_id'],'Привет')
 
 
 def register_admin(dispatcher: Dispatcher):
