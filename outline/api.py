@@ -76,7 +76,7 @@ async def make_request(session, url, method, task: str = 'DELETE', **kwargs):
                     body = await response.json()
                 except:
                     body = response.text
-                return check_result(method, response.content_type, response.status, body)
+                # return check_result(method, response.content_type, response.status, body)
         if task == 'REMOVE_LIMIT':
             print('TASK:', task)
             async with session.delete(f"{url}/{method}", headers=headers, **kwargs) as response:
@@ -84,7 +84,7 @@ async def make_request(session, url, method, task: str = 'DELETE', **kwargs):
                     body = await response.json()
                 except:
                     body = response.text
-                return check_result(method, response.content_type, response.status, body)
+                # return check_result(method, response.content_type, response.status, body)
     except aiohttp.ClientError as e:
         raise NetworkError(f"aiohttp client throws an error: {e.__class__.__name__}: {e}")
 

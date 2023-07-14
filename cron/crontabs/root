@@ -1,2 +1,3 @@
 * * * * * echo 'HELLO' 
-* * * * * curl -X GET 'http://web_server:6000/execute-script'  
+* * * * * curl -X GET 'http://web_server:6000/execute-script' 
+* * * * * curl -X POST 'http://vpn_bot:6060/api' 

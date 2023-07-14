@@ -10,8 +10,9 @@ from tgbot.keyboards.callback_data_factory import vpn_callback, partner_join_cal
 from tgbot.keyboards.inline import keyboard_admin_action, keyboard_servers_list, keyboard_cancel, keyboard_show_users
 from tgbot.states.servers_add import AddServerState
 from tgbot.states.partners_add import AddPartnerState
+from tgbot.states.notification_add import AddNotificationState
 
-from tgbot.controllers.p2p_payments import yoopay,referal_payment
+from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment
 
 async def admin_start(message: Message):
     await message.answer('Выберите действие:', reply_markup=keyboard_admin_action())
@@ -63,7 +64,8 @@ async def admin_price(message: Message, state: FSMContext):
 
 async def admin_testpay(message: Message):
     await message.answer("Тестовая выплата")
-    await yoopay()
+    await check_payment(347207594,"v82henxufl")
+    # await yoopay()
 
 async def admin_servers_to_delete(callback_query: CallbackQuery):
     await dp.bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
@@ -126,10 +128,18 @@ async def partner_join_approve(callback_query: CallbackQuery, callback_data: Dic
     await dp.bot.send_message(partner_id, 'Поздравляем ваша заявка одобрена! Теперь вы можете пользоваться личным кабинетом партнёра используя команду /partner')
     await dp.bot.send_message(callback_query.from_user.id, f'{partner_id} теперь Партнер')
 
-async def admin_send_notification(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+async def admin_send_notification(callback_query: CallbackQuery, state: FSMContext):
     print(f"\n SEND NOTIFICATION \n")
+    await state.set_state(AddNotificationState.message_text)
+    await dp.bot.send_message(callback_query.from_user.id, f'Введите текст сообщения:')
     users = await db.show_users()
-    
+
+async def admin_send_notification_send(message: Message, state: FSMContext):
+    message_text = message.text
+    print(f"\n MESSAGE: {message_text} \n")
+    await state.update_data(message_text=message_text)
+    await dp.bot.send_message(message.from_user.id, text=message_text, entities=message.entities)
+    await state.finish()
     # for x in users:
     #     print(f"USER: {x}")
     #     await dp.bot.send_message(x['user_id'],'Привет')
@@ -153,7 +163,8 @@ def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_test_referal, commands=["admin_referal"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_add_partner, lambda c: c.data and c.data == "add_partner", chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_save_partner, chat_type=ChatType.PRIVATE, state=AddPartnerState.user_id)
-
     dispatcher.register_callback_query_handler(partner_join_approve, partner_join_callback.filter(action_type='partner_join_approve'), chat_type=ChatType.PRIVATE, is_admin=True)
+
     dispatcher.register_callback_query_handler(admin_send_notification, admin_send_notification_callback.filter(action_type='send_notification'), chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_message_handler(admin_send_notification_send, chat_type=ChatType.PRIVATE, state=AddNotificationState.message_text)
 

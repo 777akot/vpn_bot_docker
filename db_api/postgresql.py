@@ -177,6 +177,10 @@ class Database:
         sql = "SELECT (server_id,active,bought,label,outline_key_id) FROM vpn_keys WHERE owner_id = $1"
         return await self.execute(sql, user_id, fetch=True)
     
+    async def get_all_keys_data(self):
+        sql = "SELECT * FROM vpn_keys"
+        return await self.execute(sql, fetch=True)
+    
     async def get_key_by_label(self, label):
         sql = "SELECT (outline_access_url) FROM vpn_keys WHERE label=$1"
         return await self.execute(sql, label, fetchval=True)
@@ -208,6 +212,10 @@ class Database:
     async def get_outline_key(self, user_id, label):
         sql = "SELECT (outline_key_id, outline_access_Url) FROM vpn_keys WHERE owner_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, fetchval=True)
+    
+    async def set_key_active(self, key_id, label, active):
+        sql = "UPDATE vpn_keys SET active=($3) WHERE outline_key_id=($1) AND label=($2)"
+        return await self.execute(sql, key_id, label, active, execute=True)
     
     # REFERALS
 
