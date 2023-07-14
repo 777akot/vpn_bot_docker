@@ -125,6 +125,12 @@ async def create_payment(label, price: int):
     )
     return qp
 
+async def check_yoomoney(label):
+    client = Client(yooclient['token'])
+    history = client.operation_history(label=label)
+    operation = history.operations[-1]
+    print(f"\n OPERATION: {operation}")
+
 async def check_payment(user_id, label):
     print("\n CHECK PAYMENT: \n")
     #СМОТРИМ В БАЗЕ БЫЛ ЛИ УЖЕ ОПЛАЧЕН КЛЮЧ И ЕСТЬ ОТМЕТКА В БАЗЕ

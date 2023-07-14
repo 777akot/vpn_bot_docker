@@ -12,7 +12,7 @@ from tgbot.states.servers_add import AddServerState
 from tgbot.states.partners_add import AddPartnerState
 from tgbot.states.notification_add import AddNotificationState
 
-from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment
+from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment, check_yoomoney
 
 async def admin_start(message: Message):
     await message.answer('Выберите действие:', reply_markup=keyboard_admin_action())
@@ -64,7 +64,8 @@ async def admin_price(message: Message, state: FSMContext):
 
 async def admin_testpay(message: Message):
     await message.answer("Тестовая выплата")
-    await check_payment(347207594,"v82henxufl")
+    # await check_payment(347207594,"v82henxufl")
+    await check_yoomoney("v82henxufl")
     # await yoopay()
 
 async def admin_servers_to_delete(callback_query: CallbackQuery):
