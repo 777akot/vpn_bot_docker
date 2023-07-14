@@ -242,6 +242,10 @@ class Database:
         sql = "INSERT INTO vpn_payments (label, user_id, referer_id, sum, referer_payout) VALUES ($1, $2, $3, $4, $5)"
         return await self.execute(sql, label, user_id, referer_id, sum, referer_payout, execute=True)
     
+    async def get_all_payments(self):
+        sql = "SELECT (label) from vpn_payments"
+        return await self.execute(sql, fetch=True)
+
     async def get_payment_by_id(self, label, user_id):
         sql = "SELECT * FROM vpn_payments WHERE label=$1 AND user_id=$2"
         return await self.execute(sql, label, user_id, fetch=True)

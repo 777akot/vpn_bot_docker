@@ -65,7 +65,13 @@ async def admin_price(message: Message, state: FSMContext):
 async def admin_testpay(message: Message):
     await message.answer("Тестовая выплата")
     # await check_payment(347207594,"v82henxufl")
-    await check_yoomoney("v82henxufl")
+    payments = await db.get_all_payments()
+    for x in payments:
+        label = x['label']
+        print(f"{label}\n")
+        status = await check_yoomoney(label)
+        if status:
+            await dp.bot.send_message(message.from_user.id, f'L: {label}. S: {status}')
     # await yoopay()
 
 async def admin_servers_to_delete(callback_query: CallbackQuery):

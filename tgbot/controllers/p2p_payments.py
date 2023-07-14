@@ -128,8 +128,12 @@ async def create_payment(label, price: int):
 async def check_yoomoney(label):
     client = Client(yooclient['token'])
     history = client.operation_history(label=label)
-    operation = history.operations[-1]
-    print(f"\n OPERATION: {operation}")
+    operation = history.operations[-1] if len(history.operations) > 0 else None
+    if operation is not None:
+        print(f"\n OPERATION: {operation.status}")
+        return operation.status
+    else:
+        return None
 
 async def check_payment(user_id, label):
     print("\n CHECK PAYMENT: \n")
