@@ -127,8 +127,9 @@ def keyboard_admin_action():
     btn_show_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_users')
     btn_add_partner = InlineKeyboardButton(f'Добавить партнера', callback_data='add_partner')
     btn_send_invite = InlineKeyboardButton(f'Отправить сообщение', callback_data=admin_send_notification_callback.new(action_type='send_notification'))
+    btn_renew_trial = InlineKeyboardButton(f'Вернуть триал', callback_data='renew_trial')
     btn_cancel = InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel")
-    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_add_partner, btn_send_invite, btn_cancel)
+    keyboard.add(btn_add_server, btn_delete_server, btn_show_users, btn_add_partner, btn_send_invite, btn_renew_trial, btn_cancel)
     return keyboard
 
 def keyboard_partner_action():

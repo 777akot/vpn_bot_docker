@@ -183,7 +183,9 @@ async def admin_send_notification_send(message: Message, state: FSMContext):
         await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
     
     
-
+async def admin_renew_trial(message: Message):
+    await db.set_trial_used(message.from_user.id, False)
+    await dp.bot.send_message(message.from_user.id, f'Триал обновлён')
 
 def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_testpay, commands=["admin_pay"], chat_type=ChatType.PRIVATE, is_admin=True)
@@ -198,6 +200,8 @@ def register_admin(dispatcher: Dispatcher):
     dispatcher.register_callback_query_handler(admin_delete_server, vpn_callback.filter(action_type='to_delete'), chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_delete_key, lambda c: c.data and c.data == 'delete_key', chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_show_users, lambda c: c.data and c.data == "show_users", chat_type=ChatType.PRIVATE, is_admin=True)
+
+    dispatcher.register_callback_query_handler(admin_renew_trial, lambda c: c.data and c.data == "renew_trial", chat_type=ChatType.PRIVATE, is_admin=True)
 
 
     dispatcher.register_message_handler(admin_test_referal, commands=["admin_referal"], chat_type=ChatType.PRIVATE, is_admin=True)

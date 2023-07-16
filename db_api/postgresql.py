@@ -166,7 +166,7 @@ class Database:
     async def show_users(self):
         sql = "SELECT * FROM vpn_users ORDER BY created_at ASC"
         return await self.execute(sql, fetch=True)
-    
+
     # KEYS #
 
     async def get_all_labels(self):
