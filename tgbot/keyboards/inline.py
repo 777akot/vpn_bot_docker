@@ -1,8 +1,8 @@
 import logging
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, User
 
-from loader import db
+from loader import db, dp
 from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback
 
 from tgbot.controllers import key_controller
@@ -105,6 +105,16 @@ def keyboard_keys_actions(key_id: int):
     keyboard.insert(InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
     return keyboard
 
+async def get_nickname(user_id):
+    user = await dp.bot.get_chat(user_id)
+    print(f"\n get_nickname: {user} \n")
+    if "username" in user:
+        print(f"\n IS INSTANCE \n")
+        nickname = user.username
+        if nickname:
+            return nickname
+    return None
+
 async def keyboard_show_users():
     users = await db.show_users()
     keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
@@ -117,7 +127,8 @@ async def keyboard_show_users():
 
     for x in users:
         print(f"\n user {x} \n")
-        keyboard.insert(InlineKeyboardButton(f'{x[1]}: {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
+        username = await get_nickname(x[1])
+        keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
     return keyboard
 
 def keyboard_admin_action():
