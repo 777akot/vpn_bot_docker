@@ -178,7 +178,7 @@ class Database:
         return await self.execute(sql, owner_id, label, expiration_at, server_id, execute=True)
     
     async def get_all_keys(self, user_id):
-        sql = "SELECT (server_id,active,bought,label,outline_key_id) FROM vpn_keys WHERE owner_id = $1"
+        sql = "SELECT (server_id,active,bought,label,outline_key_id) FROM vpn_keys WHERE owner_id = $1 ORDER BY created_at DESC"
         return await self.execute(sql, user_id, fetch=True)
     
     async def get_all_keys_data(self):

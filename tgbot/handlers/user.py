@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from typing import Dict
 
-from loader import bot, db
+from loader import bot, db, admin_ids
 from tgbot.keyboards.callback_data_factory import vpn_keys_callback
 from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_start, keyboard_keys_list, keyboard_client, permanent_keyboard
 

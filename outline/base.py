@@ -77,3 +77,7 @@ class OutlineManager:
     
     async def remove_data_limit(self, api_key: str, key_id: int):
         return await self.request(api_key, f"{Methods.KEYS}/{key_id}/data-limit","REMOVE_LIMIT")
+
+    async def set_name_label(self, api_key: str, key_id: int, name: str):
+        data = {"name": name}
+        return await self.request(api_key, f"{Methods.KEYS}/{key_id}/name","SET_NAME",json=data)

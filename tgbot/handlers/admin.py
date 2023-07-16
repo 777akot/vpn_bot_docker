@@ -73,12 +73,18 @@ async def admin_testpay(message: Message):
         print(f"{label}\n")
         status = await check_yoomoney(label)
         key_exist = await db.get_key_all_data_by_label(label)
+        
         if len(key_exist) == 0:
             print(f'KEY NOT EXIST: {key_exist}')
             await db.delete_payment_by_label(user_id, label)
             await dp.bot.send_message(message.from_user.id, f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
 
         else:
+            key_item = key_exist[0]
+            server_id = key_item['server_id']
+            api_key = await db.get_server_key(int(server_id))
+            key_id = key_item['outline_key_id']
+            await outline.set_name_label(api_key, key_id, label)
             await dp.bot.send_message(message.from_user.id, f'KEY EXIST')
 
         if status:
@@ -167,14 +173,14 @@ async def admin_send_notification_send(message: Message, state: FSMContext):
     message_text = message.text
     print(f"\n MESSAGE: {message_text} \n")
     await state.update_data(message_text=message_text)
+    await state.finish()
     users = await db.show_users()
+    
     for x in users:
         print(f"USER: {x}")
         user_id = x['user_id']
         # await dp.bot.send_message(x['user_id'],'Привет')
         await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
-    
-    await state.finish()
     
     
 

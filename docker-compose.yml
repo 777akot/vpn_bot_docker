@@ -70,7 +70,7 @@ services:
     networks:
       - vpn_bot
     logging:
-      driver: "none"
+      driver: none
   vpn_bot:
     container_name: "vpn_bot"
     stop_signal: SIGINT

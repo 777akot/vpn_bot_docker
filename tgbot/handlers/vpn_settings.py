@@ -13,7 +13,7 @@ import math
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from loader import db, bot, outline, quickpay, key_config, referer_config
+from loader import db, bot, outline, quickpay, key_config, referer_config, admin_ids
 from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback, vpn_keys_callback
 from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions
 
@@ -145,13 +145,17 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
         try:
             accessUrl = check_outline_key[1]
             if check_outline_key[0] == None:
-                data = await outline.create_key(await db.get_server_key(int(server_id)))
+                api_key = await db.get_server_key(int(server_id))
+                data = await outline.create_key(api_key)
+                key_id = int(data.get('id'))
+                key_accessUrl = data.get('accessUrl')
+                await outline.set_name_label(api_key, key_id, label)
                 updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
-                                                           label, 
-                                                           int(data.get('id')), 
-                                                           data.get('accessUrl'))
+                                                           label,
+                                                           key_id, 
+                                                           key_accessUrl)
                 print(f"\n Data: \n: {data} , {updatekey}")
-                accessUrl = data["accessUrl"]
+                accessUrl = key_accessUrl
 
             # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
             
@@ -171,6 +175,7 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
                                 f'Оплата ещё не прошла. Попробуйте позже...')
 
 async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+    
     label = callback_data['label']
     server_id = callback_data['server']
 
@@ -181,13 +186,17 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
         try:
             accessUrl = check_outline_key[1]
             if check_outline_key[0] == None:
-                data = await outline.create_key(await db.get_server_key(int(server_id)))
+                api_key = await db.get_server_key(int(server_id))
+                data = await outline.create_key(api_key)
+                key_id = int(data.get('id'))
+                key_accessUrl = data.get('accessUrl')
+                await outline.set_name_label(api_key, key_id, label)
                 updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
                                                            label, 
-                                                           int(data.get('id')), 
-                                                           data.get('accessUrl'))
+                                                           key_id, 
+                                                           key_accessUrl)
                 print(f"\n Data: \n: {data} , {updatekey}")
-                accessUrl = data["accessUrl"]
+                accessUrl = key_accessUrl
 
             # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
             result = await db.set_trial_used(callback_query.from_user.id, True)
