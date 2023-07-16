@@ -128,7 +128,7 @@ async def keyboard_show_users():
     for x in users:
         print(f"\n user {x} \n")
         username = await get_nickname(x[1])
-        keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
+        keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
     return keyboard
 
 def keyboard_admin_action():
