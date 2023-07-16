@@ -169,6 +169,10 @@ class Database:
     
     # KEYS #
 
+    async def get_all_labels(self):
+        sql = "SELECT (label) FROM vpn_keys"
+        return await self.execute(sql, fetch=True)
+
     async def add_key(self, owner_id, label, expiration_at, server_id):
         sql = "INSERT INTO vpn_keys (owner_id, label, expiration_at, server_id) VALUES ($1, $2, $3, $4)"
         return await self.execute(sql, owner_id, label, expiration_at, server_id, execute=True)
@@ -185,6 +189,10 @@ class Database:
         sql = "SELECT (outline_access_url) FROM vpn_keys WHERE label=$1"
         return await self.execute(sql, label, fetchval=True)
     
+    async def get_key_all_data_by_label(self, label):
+        sql = "SELECT * FROM vpn_keys WHERE label=$1"
+        return await self.execute(sql, label, fetch=True)
+
     async def get_key_data_by_label(self, label):
         sql = "SELECT (server_id, outline_key_id) FROM vpn_keys WHERE label=$1"
         return await self.execute(sql, label, fetchval=True)
@@ -243,7 +251,7 @@ class Database:
         return await self.execute(sql, label, user_id, referer_id, sum, referer_payout, execute=True)
     
     async def get_all_payments(self):
-        sql = "SELECT (label) from vpn_payments"
+        sql = "SELECT (label, user_id) from vpn_payments"
         return await self.execute(sql, fetch=True)
 
     async def get_payment_by_id(self, label, user_id):
@@ -258,6 +266,14 @@ class Database:
         sql = "UPDATE vpn_payments SET sum_paid=($3) WHERE user_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, sum_paid, execute=True)
     
+    async def update_payment_trial(self, user_id, label):
+        sql = "UPDATE vpn_payments SET sum=0, referer_payout=0 WHERE user_id=($1) AND label=($2)"
+        return await self.execute(sql, user_id, label, execute=True)
+    
     async def update_payment_referer_status_by_id(self, user_id, label, referer_payout_paid):
         sql = "UPDATE vpn_payments SET referer_payout_paid=($3) WHERE user_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, referer_payout_paid, execute=True)
+
+    async def delete_payment_by_label(self, user_id, label):
+        sql = "DELETE FROM vpn_payments WHERE user_id=$1 AND label=$2"
+        return await self.execute(sql, user_id, label, execute=True)

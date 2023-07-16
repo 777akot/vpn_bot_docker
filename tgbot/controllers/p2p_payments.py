@@ -129,6 +129,7 @@ async def check_yoomoney(label):
     client = Client(yooclient['token'])
     history = client.operation_history(label=label)
     operation = history.operations[-1] if len(history.operations) > 0 else None
+    
     if operation is not None:
         print(f"\n OPERATION: {operation.status}")
         return operation.status
@@ -187,6 +188,7 @@ async def check_trial_payment(user_id, label):
         try:
             await db.update_payment_status(user_id, label, bool(True))
             await db.update_payment_status_by_id(user_id, label, bool(True))
+            await db.update_payment_trial(user_id, label)
         except Exception as e:
             return False
     else:

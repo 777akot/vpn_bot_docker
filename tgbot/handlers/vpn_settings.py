@@ -55,6 +55,16 @@ async def get_new_key(callback_query: CallbackQuery, callback_data: Dict[str, st
         await bot.send_message(callback_query.from_user.id,
                                f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
 
+async def generate_label():
+
+    labels = await db.get_all_labels()
+    while True:
+
+        label = ''.join(random.sample(string.ascii_lowercase + string.digits, 10))
+        label_exists = any(x['label'] == label for x in labels)
+        if not label_exists:
+            return label
+                
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
@@ -67,7 +77,8 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
     price = server[0][0][2]
 
     owner_id = callback_query.from_user.id
-    label = ''.join(random.sample(string.ascii_lowercase + string.digits, 10))
+    
+    label = await generate_label()
     expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
 
     user_data = await db.get_user_by_id(owner_id)
@@ -201,6 +212,8 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    label = callback_data['key']
+    check_key = await p2p_payments.check_payment(callback_query.from_user.id, label)
     access_url = await db.get_key_by_label(callback_data['key'])
     await callback_query.answer()
     text = "Ключ не оплачен"
@@ -214,6 +227,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
 async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     key_data = await db.get_key_data_by_label(callback_data['key'])
     label = callback_data['key']
+    user_id = callback_query.from_user.id
     server_id = key_data[0]
     outline_key_id = key_data[1]
     api_link = await db.get_server_key(int(server_id))
@@ -221,20 +235,26 @@ async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     if outline_key_id is None:
         print(f"\n is None: {outline_key_id} \n")
         await db.delete_key(label,server_id)
+        await db.delete_payment_by_label(user_id, label)
     else:
+        print(f"\n is Not None: {outline_key_id} \n")
         await outline.delete_key(api_link, outline_key_id)
         await db.delete_key(label,server_id)
-        print(f"\n is Not None: {outline_key_id} \n")
+        await db.delete_payment_by_label(user_id, label)
+        
 
     print(f"\n KEY DATA: {key_data[0]} : {key_data[1]}\n")
     await bot.send_message(callback_query.from_user.id, f'Ключ удалён')
+
+async def prolong_key():
+    return
 
 
 def register_vpn_handlers(dp: Dispatcher):
     dp.register_message_handler(vpn_handler, commands=["vpn"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(vpn_callback_handler, vpn_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(vpn_p2p_callback_handler, vpn_p2p_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
-    dp.register_callback_query_handler(get_new_key, vpn_callback.filter(action_type='new_key'), chat_type=ChatType.PRIVATE)
+    # dp.register_callback_query_handler(get_new_key, vpn_callback.filter(action_type='new_key'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_new_p2p_key, vpn_callback.filter(action_type='new_p2p_key'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_claimed_key, vpn_p2p_claim_callback.filter(action_type='p2p_claim'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_trial, trial_callback.filter(action_type='trial'), chat_type=ChatType.PRIVATE)

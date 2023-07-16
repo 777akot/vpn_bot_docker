@@ -67,11 +67,34 @@ async def admin_testpay(message: Message):
     # await check_payment(347207594,"v82henxufl")
     payments = await db.get_all_payments()
     for x in payments:
-        label = x['label']
+        print(f"\n X: {x[0][0]}")
+        label = x[0][0]
+        user_id = x[0][1]
         print(f"{label}\n")
         status = await check_yoomoney(label)
+        key_exist = await db.get_key_all_data_by_label(label)
+        if len(key_exist) == 0:
+            print(f'KEY NOT EXIST: {key_exist}')
+            await db.delete_payment_by_label(user_id, label)
+            await dp.bot.send_message(message.from_user.id, f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
+
+        else:
+            await dp.bot.send_message(message.from_user.id, f'KEY EXIST')
+
         if status:
             await dp.bot.send_message(message.from_user.id, f'L: {label}. S: {status}')
+        else:
+            payment_status = await db.get_payment_by_id(label, int(user_id))
+            for p in payment_status:
+                label = p['label']
+                payment_sum = p['sum']
+                payment_sum_paid = p['sum_paid']
+                if payment_sum > 0 and status is None:
+                    # await db.update_payment_trial(user_id, label)
+                    print(f"\n Payment status: {p['sum']}")
+                    await dp.bot.send_message(message.from_user.id, f'P: {p["sum"]} Paid: {payment_sum_paid==True} L: {label}')
+                
+            # 
     # await yoopay()
 
 async def admin_servers_to_delete(callback_query: CallbackQuery):
@@ -139,17 +162,21 @@ async def admin_send_notification(callback_query: CallbackQuery, state: FSMConte
     print(f"\n SEND NOTIFICATION \n")
     await state.set_state(AddNotificationState.message_text)
     await dp.bot.send_message(callback_query.from_user.id, f'Введите текст сообщения:')
-    users = await db.show_users()
 
 async def admin_send_notification_send(message: Message, state: FSMContext):
     message_text = message.text
     print(f"\n MESSAGE: {message_text} \n")
     await state.update_data(message_text=message_text)
-    await dp.bot.send_message(message.from_user.id, text=message_text, entities=message.entities)
+    users = await db.show_users()
+    for x in users:
+        print(f"USER: {x}")
+        user_id = x['user_id']
+        # await dp.bot.send_message(x['user_id'],'Привет')
+        await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
+    
     await state.finish()
-    # for x in users:
-    #     print(f"USER: {x}")
-    #     await dp.bot.send_message(x['user_id'],'Привет')
+    
+    
 
 
 def register_admin(dispatcher: Dispatcher):

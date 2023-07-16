@@ -16,12 +16,14 @@ async def disable_expired_keys():
             print(f'\n X: {x["expiration_at"]} \n NOW: {current_date} \n')
             days_left = (x["expiration_at"] - current_date).days
             key_active = x['active']
+            key_bought = x['bought']
             print(f'\n{days_left}\n')
-            if days_left <= 0 and key_active == True:
+            if days_left <= 0 and key_active == True or key_bought == True:
                 
                 print(f'\nKEY EXPIRED\n')
                 print(f'ACTIVE: {key_active}\n')
                 label = x["label"]
+                user_id = x["owner_id"]
                 key_id = x["outline_key_id"]
                 api_link = await db.get_server_key(int(x["server_id"]))
                 print(f'KEY_ID: {key_id}\n')
@@ -32,7 +34,8 @@ async def disable_expired_keys():
                     raise "Invalid Api Link"
                 
                 await outline.set_data_limit(api_link, key_id)
-                await db.set_key_active(key_id, label, False)
+                await db.update_payment_status(user_id, label, False)
+                # await db.set_key_active(key_id, label, False)
 
         return
     except Exception as e:
@@ -59,6 +62,7 @@ async def get_all_keys(user_id):
             result = "Оплачен"
         return f"{result}"
 
+    
     keys = await db.get_all_keys(user_id)
 
     predefined_keys = [x[0] for x in keys]

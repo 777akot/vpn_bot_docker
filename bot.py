@@ -64,7 +64,7 @@ async def on_shutdown(dispatcher):
     logging.warning('Shutting down..')
     await dispatcher.storage.close()
     await dispatcher.storage.wait_closed()
-
+# 
     logging.warning('Bye!')
     await dispatcher.bot.close()
     await db.close()
@@ -72,7 +72,7 @@ async def on_shutdown(dispatcher):
 
 async def handle_http_request(request):
     print('\n Handle_http_request \n')
-    # keys = await key_controller.disable_expired_keys()
+    keys = await key_controller.disable_expired_keys()
     
     # # Получаем данные из запроса
     # data = await request.json()
