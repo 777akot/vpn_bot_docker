@@ -106,8 +106,8 @@ def keyboard_keys_actions(key_id: int):
     btn_trial = (InlineKeyboardButton(f' 🎟 Бесплатный доступ', callback_data=f"cancel"))
     btn_pay = (InlineKeyboardButton(f'💲 Оплатить', callback_data=f"cancel"))
     btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
-    keyboard.add(btn_trial)
-    keyboard.row(btn_pay, btn_delete)
+    # keyboard.add(btn_trial)
+    # keyboard.row(btn_pay, btn_delete)
     return keyboard
 
 async def get_nickname(user_id):
