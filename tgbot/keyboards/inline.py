@@ -91,18 +91,23 @@ async def keyboard_servers_list(action_type: str):
 async def keyboard_keys_list(action_type: str, user_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
     keys = await key_controller.get_all_keys(user_id)
+    
 
     for x in keys:
         print(f"\n key {x} \n")
-        keyboard.insert(InlineKeyboardButton(f'{x[0]} : {x[1]}', callback_data=vpn_keys_callback.new(action_type=action_type,
+        days_left = f". ⏱ {x[5]} дней" if x[1] != "🔴" else ""
+        keyboard.insert(InlineKeyboardButton(f'{x[0]} : {x[1]}{days_left}', callback_data=vpn_keys_callback.new(action_type=action_type,
                                                                                           key=f'{x[3]}')))
     return keyboard
 
 def keyboard_keys_actions(key_id: int):
     print(f"\n key_id {key_id} \n")
-    keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
-    keyboard.insert(InlineKeyboardButton(f'💲 Оплатить', callback_data=f"cancel"))
-    keyboard.insert(InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
+    keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
+    btn_trial = (InlineKeyboardButton(f' 🎟 Бесплатный доступ', callback_data=f"cancel"))
+    btn_pay = (InlineKeyboardButton(f'💲 Оплатить', callback_data=f"cancel"))
+    btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
+    keyboard.add(btn_trial)
+    keyboard.row(btn_pay, btn_delete)
     return keyboard
 
 async def get_nickname(user_id):

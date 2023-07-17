@@ -11,14 +11,17 @@ import random
 import math
 
 from datetime import datetime, timedelta
+import pytz
 from dateutil.relativedelta import relativedelta
 
 from loader import db, bot, outline, quickpay, key_config, referer_config, admin_ids
 from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback, vpn_keys_callback
-from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions
+from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions, keyboard_cancel
 
 from tgbot.controllers import key_controller
 from tgbot.controllers import p2p_payments
+
+from tgbot.utils.confirm_dialog import confirm_dialog
 
 
 async def vpn_handler(message: Message):
@@ -220,12 +223,29 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
     # print(f"\n GET TRIAL RESULT: {result}\n")
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    
+    # async def test_func():
+    #     print(f"\n ДЕЙСТВИЕ ВЫПОЛНЕНО!!!!! \n")
+    #     await bot.send_message(callback_query.from_user.user_id, "Выполнено")
+        
+    # await confirm_dialog(callback_query, test_func)
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     label = callback_data['key']
+    user_id = callback_query.from_user.id
     key_data = await db.get_key_all_data_by_label(label)
-    print(f"\n KEY_DATA: {key_data} \n")
+    key_expriration = key_data[0]['expiration_at']
+    current_date = datetime.now(pytz.utc)
+    days_left = (key_expriration - current_date).days
+    print(f"\n SELECT KEY > KEY_DATA: {key_data} \n")
     server_id = key_data[0]['server_id'] if len(key_data) > 0 else None
+    server = await db.get_server_by_id(int(server_id))
+    print(f"\n SELECT KEY > SERVER: {server}\n")
+    server_name = server[0][0][1]
+    server_price = server[0][0][2]
+    print(f"\n SELECT KEY > SERVER NAME: {server_name}\n")
     paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label)
+    payment = await db.get_payment_by_id(label, int(user_id))
+    price = (payment[0]['sum'] if payment[0]['sum'] > 0 else "Free") if len(payment) > 0 else server_price
     check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
     if paymentstatus == True and server_id is not None:
         try:
@@ -245,14 +265,25 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
                 accessUrl = key_accessUrl
         except Exception as e:
             print(f"ERROR: {e}")
-        
+    else:
+        accessUrl = None
     await callback_query.answer()
-    text = "Ключ не оплачен"
+    text = (
+        f"Ключ не оплачен \n\n"
+        f"Сервер: {server_name}\n"
+        f"Цена\Месяц: {price}\n"
+    )
     if accessUrl != None:
-        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n <code>{accessUrl}</code> \n \n "
+        text = (
+            f"Вставьте вашу ссылку доступа в приложение Outline: \n"
+            f"<code>{accessUrl}</code>\n\n"
+            f"Сервер: <b>{server_name}</b>\n"
+            f"Цена\Месяц: <b>{price}</b>\n"
+            f"Активен до: <b>{key_expriration.date()}</b> Осталось: <b>{days_left}</b> дней\n\n"
+            )
     await bot.send_message(callback_query.from_user.id,
                            text,
-                            reply_markup=keyboard_keys_actions(callback_data['key']), disable_web_page_preview=True
+                            reply_markup=keyboard_keys_actions(callback_data['key']),parse_mode="HTML", disable_web_page_preview=True
                             )
 
 async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):

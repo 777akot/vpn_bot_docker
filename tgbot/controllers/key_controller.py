@@ -51,9 +51,9 @@ async def get_all_keys(user_id):
 
     def get_active(active):
         print(f"\n ACTIVE: {active}")
-        result = "Неактивен"
+        result = "🔴"
         if active == True:
-            result = "Активен"
+            result = "🟢"
         return f"{result}"
     
     def get_paid(bought):
@@ -62,6 +62,10 @@ async def get_all_keys(user_id):
             result = "Оплачен"
         return f"{result}"
 
+    def days_left(date):
+        current_date = datetime.now(pytz.utc)
+        result = (date - current_date).days
+        return result
     
     keys = await db.get_all_keys(user_id)
 
@@ -72,7 +76,7 @@ async def get_all_keys(user_id):
     
     
     
-    result = [(await get_server_name(server), get_active(active), get_paid(bought), label, outline_key_id) for server, active, bought, label, outline_key_id in predefined_keys]
+    result = [(await get_server_name(server), get_active(active), get_paid(bought), label, outline_key_id, days_left(expiration_at)) for server, active, bought, label, outline_key_id, expiration_at in predefined_keys]
     
     
     return result

@@ -178,7 +178,7 @@ class Database:
         return await self.execute(sql, owner_id, label, expiration_at, server_id, execute=True)
     
     async def get_all_keys(self, user_id):
-        sql = "SELECT (server_id,active,bought,label,outline_key_id) FROM vpn_keys WHERE owner_id = $1 ORDER BY created_at DESC"
+        sql = "SELECT (server_id,active,bought,label,outline_key_id,expiration_at) FROM vpn_keys WHERE owner_id = $1 ORDER BY created_at DESC"
         return await self.execute(sql, user_id, fetch=True)
     
     async def get_all_keys_data(self):
@@ -255,7 +255,7 @@ class Database:
         return await self.execute(sql, fetch=True)
 
     async def get_payment_by_id(self, label, user_id):
-        sql = "SELECT * FROM vpn_payments WHERE label=$1 AND user_id=$2"
+        sql = "SELECT * FROM vpn_payments WHERE label=$1 AND user_id=$2 ORDER BY created_at DESC"
         return await self.execute(sql, label, user_id, fetch=True)
 
     async def get_payment_by_referer_id(self, referer_id):

@@ -1,5 +1,5 @@
 from aiogram import Dispatcher
-from aiogram.types import Message, CallbackQuery, ChatType
+from aiogram.types import Message, CallbackQuery, ChatType, ParseMode
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -48,13 +48,21 @@ async def p2p_start(message: Message):
         print(f'error: {e}')
         pass
     finally:
-        await bot.send_message(chat_id=message.chat.id,text=f"Привет, {message.chat.first_name}! \n\n",reply_markup=permanent_keyboard())
-        await message.answer(f'🕹 Главное меню \n\n'
-                             f'Чтобы начать пользоваться VPN, вам необходимо скачать клиент Outline для вашего устройства. \n\n'
-                             f'Дальше необходимо нажать кнопку “Доступ к VPN“ и выбрать страну.\n\n'
-                             f'Обязательно добавляйтесь в чат поддержки\n\n'
-                             f'\n\n'
+        def get_nbsp(count):
+            return "\u00A0" * count
+            
 
+        await bot.send_message(chat_id=message.chat.id,text=f"Привет, {message.chat.first_name}! \n\n",reply_markup=permanent_keyboard())
+        await message.answer(
+                             f'<b>🕹 Главное меню </b>\n\n'
+                             f'Пользоваться VPN без рекламы и тормозов – проще! 🌐🚀\n\n'
+                             f'Нажми "Скачать клиент" для \nустановки приложения Outline.📲💻\n\n'
+                             f'Затем выбери страну нажав "Доступ к VPN".🌍\nЕсли новый пользователь – используй Бесплатный Доступ.🆓\n'
+                             f'Если нет, после оплаты, нажми получить ключ. 💰🔑\n'
+                             f'Скопируй и вставь ключ в клиент – и неограниченный \nдоступ в интернет у тебя. 🔓🌐\n\n'
+                             f'Если есть вопросы или что-то не получилось – нажми "Чат поддержки". 🤝💬\n'
+                             f'Присоединяйся, чтобы сделать сервис удобным для тебя! 🙌😊\n'
+                             f'<pre>{get_nbsp(70)}</pre><pre>\u00A0</pre>\n'
                              ,
                         reply_markup=keyboard_p2p_start(), disable_web_page_preview=False)
 
@@ -86,8 +94,9 @@ async def show_my_keys(message: Message):
     # await clear_screen(message)
     keys = await db.get_all_keys(message.chat.id)
     if len(keys) > 0:
-        await message.answer(f'Список ваших ключей. \n'
-                         f'Выберите ключ чтобы получить ссылку для доступа \n\n'
+        await message.answer(f'<b>🗝 Мои ключи</b>\n\n'
+                         f'Выберите ключ чтобы получить ссылку для доступа\n'
+                         f'и посмотреть подробности\n\n'
                          ,
                          reply_markup=await keyboard_keys_list('showkeys',message.chat.id), disable_web_page_preview=True)
     else:
