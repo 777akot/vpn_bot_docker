@@ -78,13 +78,13 @@ class Database:
     async def create_users_table(self):
         sql = "CREATE TABLE IF NOT EXISTS vpn_users (" \
               "id bigserial PRIMARY KEY, " \
-              "user_id INT NOT NULL UNIQUE," \
+              "user_id bigserial NOT NULL UNIQUE," \
               "user_name VARCHAR(60) NOT NULL," \
               "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()," \
               "role VARCHAR(60) NOT NULL DEFAULT 'user'," \
               "trial_used BOOLEAN DEFAULT FALSE," \
               "bought BOOLEAN DEFAULT FALSE," \
-              "referer_id INT," \
+              "referer_id bigserial," \
               "referal_role VARCHAR(60) NOT NULL DEFAULT 'inviter'," \
               "user_account VARCHAR(255)," \
               "UNIQUE (user_id))"
@@ -95,7 +95,7 @@ class Database:
               "id bigserial PRIMARY KEY, " \
               "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()," \
               "bought BOOLEAN DEFAULT FALSE," \
-              "owner_id INT NOT NULL," \
+              "owner_id bigserial NOT NULL," \
               "label VARCHAR(255) NOT NULL," \
               "expiration_at TIMESTAMPTZ NOT NULL," \
               "active BOOLEAN DEFAULT FALSE," \
@@ -110,8 +110,8 @@ class Database:
               "id bigserial PRIMARY KEY, " \
               "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()," \
               "label VARCHAR(255) NOT NULL," \
-              "user_id INT NOT NULL," \
-              "referer_id INT," \
+              "user_id bigserial NOT NULL," \
+              "referer_id bigserial," \
               "sum INT NOT NULL," \
               "sum_paid BOOLEAN DEFAULT FALSE," \
               "referer_payout INT DEFAULT 0," \
