@@ -222,12 +222,34 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     label = callback_data['key']
-    check_key = await p2p_payments.check_payment(callback_query.from_user.id, label)
-    access_url = await db.get_key_by_label(callback_data['key'])
+    key_data = await db.get_key_all_data_by_label(label)
+    print(f"\n KEY_DATA: {key_data} \n")
+    server_id = key_data[0]['server_id'] if len(key_data) > 0 else None
+    paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label)
+    check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
+    if paymentstatus == True and server_id is not None:
+        try:
+            accessUrl = check_outline_key[1]
+            if check_outline_key[0] == None:
+                print(f"\n CREATE OUTLINE KEY \n")
+                api_key = await db.get_server_key(int(server_id))
+                data = await outline.create_key(api_key)
+                key_id = int(data.get('id'))
+                key_accessUrl = data.get('accessUrl')
+                await outline.set_name_label(api_key, key_id, label)
+                updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
+                                                           label, 
+                                                           key_id, 
+                                                           key_accessUrl)
+                print(f"\n Data: \n: {data} , {updatekey}")
+                accessUrl = key_accessUrl
+        except Exception as e:
+            print(f"ERROR: {e}")
+        
     await callback_query.answer()
     text = "Ключ не оплачен"
-    if access_url != None:
-        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n <code>{access_url}</code> \n \n "
+    if accessUrl != None:
+        text = f"Вставьте вашу ссылку доступа в приложение Outline: \n\n <code>{accessUrl}</code> \n \n "
     await bot.send_message(callback_query.from_user.id,
                            text,
                             reply_markup=keyboard_keys_actions(callback_data['key']), disable_web_page_preview=True
