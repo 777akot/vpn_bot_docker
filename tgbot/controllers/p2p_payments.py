@@ -94,6 +94,7 @@ async def referal_payment(user_id,label):
         if referer_id:
             referer_data = await db.get_user_by_id(referer_id)
             referer_account = referer_data[0]['user_account']
+            referer_role = referer_data[0]['referal_role']
             print(f"\n Referer: \n"
             f"\n User: {referer_id}"
             f"\n Account: {referer_account}"
@@ -103,6 +104,8 @@ async def referal_payment(user_id,label):
         print(f"\n Payout Sum: {referer_payout_sum}\n")
         
         if not referer_account:
+            if referer_role == 'inviter':
+                await db.update_free_months(referer_id, 1)
             error_message = "No Referer Account"
             raise Exception(error_message)
         

@@ -100,13 +100,16 @@ async def keyboard_keys_list(action_type: str, user_id: int):
                                                                                           key=f'{x[3]}')))
     return keyboard
 
-def keyboard_keys_actions(key_id: int):
+def keyboard_keys_actions(key_id: int, free_months: int):
     print(f"\n key_id {key_id} \n")
+
     keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
-    btn_trial = (InlineKeyboardButton(f' 🎟 Бесплатный доступ', callback_data=f"cancel"))
+    btn_trial = (InlineKeyboardButton(f' 🎟 Бесплатный доступ', callback_data=vpn_keys_callback.new(action_type="free_month",
+                                                                                          key=key_id)))
     btn_pay = (InlineKeyboardButton(f'💲 Оплатить', callback_data=f"cancel"))
     btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
-    # keyboard.add(btn_trial)
+    if free_months > 0: 
+        keyboard.add(btn_trial)
     # keyboard.row(btn_pay, btn_delete)
     return keyboard
 

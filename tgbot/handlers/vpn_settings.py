@@ -70,66 +70,70 @@ async def generate_label():
                 
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
-    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
-    await callback_query.answer()
+    try:
+        # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+        await callback_query.answer()
 
-    key_controller.new_key()
-    server_id = callback_data['server']
-    server = await db.get_server_by_id(int(server_id))
-    server_name = server[0][0][1]
-    price = server[0][0][2]
+        key_controller.new_key()
+        server_id = callback_data['server']
+        server = await db.get_server_by_id(int(server_id))
+        server_name = server[0][0][1]
+        price = server[0][0][2]
 
-    owner_id = callback_query.from_user.id
-    
-    label = await generate_label()
-    expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
-
-    user_data = await db.get_user_by_id(owner_id)
-
-    print(f'\n USER DATA: {user_data}')
-    # print(f'\n USER DATA . : {user_data[0].user_name}')
-    print(f'\n USER DATA [] : {user_data[0]["user_name"]}')
-
-    trial_used = user_data[0]['trial_used']
-    referer_id = int(user_data[0]["referer_id"]) if user_data[0].get("referer_id") else None
-    referer_payout = None
-    
-    if referer_id != None:
-        print(f'\n REFERER EXIST: {referer_id}')
-        referer_payout = int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None
+        owner_id = callback_query.from_user.id
         
+        label = await generate_label()
+        expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
 
-    print(f'\n REFERER : {referer_id}, {referer_payout} \n')
+        user_data = await db.get_user_by_id(owner_id)
 
-    await db.add_payment(label, owner_id, referer_id, price, referer_payout)
+        print(f'\n USER DATA: {user_data}')
+        # print(f'\n USER DATA . : {user_data[0].user_name}')
+        print(f'\n USER DATA [] : {user_data[0]["user_name"]}')
 
-    # return
-    #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
-    quickpay = await p2p_payments.create_payment(label,price)
+        trial_used = user_data[0]['trial_used']
+        referer_id = int(user_data[0]["referer_id"]) if user_data[0].get("referer_id") else None
+        referer_payout = None
+        
+        if referer_id != None:
+            print(f'\n REFERER EXIST: {referer_id}')
+            referer_payout = int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None
+            
 
-    print(
-        f"\n KEY DATA: \n",
-        f"owner_id: {owner_id} \n",
-        f"label: {label} \n",
-        f"expiration_at: {expiration_at} \n"
-        )
-    # ttl = key_config.get('ttl')
+        print(f'\n REFERER : {referer_id}, {referer_payout} \n')
 
-    await db.add_key(owner_id,label,expiration_at,int(server_id))
+        await db.add_payment(label, owner_id, referer_id, price, referer_payout)
 
-    await bot.send_message(callback_query.from_user.id,
-                                f'Вы выбрали сервер <b>{server_name}</b> \n'
-                                f'Стоимость ежемесячной подписки <b>{price} RUB</b> \n \n' 
-                                f'После проведения оплаты необходимо нажать кнопку <b>Получить ключ</b> \n'
-                                f'{"Или воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку." if trial_used != True else ""}'
-                                f'\n\n'
-                                ,
-                                reply_markup=await keyboard_p2p_payment(
-                                                                        quickpay.redirected_url,
-                                                                        label,
-                                                                        owner_id,
-                                                                        server_id                                                                        
-                                                                        ))
+        # return
+        #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
+        quickpay = await p2p_payments.create_payment(label,price)
+
+        print(
+            f"\n KEY DATA: \n",
+            f"owner_id: {owner_id} \n",
+            f"label: {label} \n",
+            f"expiration_at: {expiration_at} \n"
+            )
+        # ttl = key_config.get('ttl')
+
+        await db.add_key(owner_id,label,expiration_at,int(server_id))
+
+        await bot.send_message(callback_query.from_user.id,
+                                    f'Вы выбрали сервер <b>{server_name}</b> \n'
+                                    f'Стоимость ежемесячной подписки <b>{price} RUB</b> \n \n' 
+                                    f'После проведения оплаты необходимо нажать кнопку <b>Получить ключ</b> \n'
+                                    f'{"Или воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку." if trial_used != True else ""}'
+                                    f'\n\n'
+                                    ,
+                                    reply_markup=await keyboard_p2p_payment(
+                                                                            quickpay.redirected_url,
+                                                                            label,
+                                                                            owner_id,
+                                                                            server_id                                                                        
+                                                                            ))
+    except Exception as e:
+        print(f"ERROR: {e}")
+        await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
 
 async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     await callback_query.answer()
@@ -232,17 +236,21 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     label = callback_data['key']
     user_id = callback_query.from_user.id
+    user_data = await db.get_user_by_id(user_id)
+    free_months = (user_data[0]['free_months'] if user_data[0]['free_months'] > 0 else 0) if len(user_data) > 0 else 0
+
     key_data = await db.get_key_all_data_by_label(label)
     key_expriration = key_data[0]['expiration_at']
     current_date = datetime.now(pytz.utc)
     days_left = (key_expriration - current_date).days
     print(f"\n SELECT KEY > KEY_DATA: {key_data} \n")
+    
     server_id = key_data[0]['server_id'] if len(key_data) > 0 else None
     server = await db.get_server_by_id(int(server_id))
     print(f"\n SELECT KEY > SERVER: {server}\n")
     server_name = server[0][0][1]
     server_price = server[0][0][2]
-    print(f"\n SELECT KEY > SERVER NAME: {server_name}\n")
+    
     paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label)
     payment = await db.get_payment_by_id(label, int(user_id))
     price = (payment[0]['sum'] if payment[0]['sum'] > 0 else "Free") if len(payment) > 0 else server_price
@@ -283,7 +291,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
             )
     await bot.send_message(callback_query.from_user.id,
                            text,
-                            reply_markup=keyboard_keys_actions(callback_data['key']),parse_mode="HTML", disable_web_page_preview=True
+                            reply_markup=keyboard_keys_actions(callback_data['key'],free_months),parse_mode="HTML", disable_web_page_preview=True
                             )
 
 async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
@@ -311,6 +319,62 @@ async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str
 async def prolong_key():
     return
 
+async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    try:
+        label = callback_data['key']
+        key_data = await db.get_key_all_data_by_label(label)
+        server_id = key_data[0]['server_id']
+        print(f'\n GET FREE MONTH: {key_data[0]} \n')
+        
+
+        user_id = callback_query.from_user.id
+        user_data = await db.get_user_by_id(user_id)
+        free_months = user_data[0]['free_months']
+        referer_id = user_data[0]['referer_id']
+        
+        outline_key_id = key_data[0]['outline_key_id']
+        outline_access_url = key_data[0]['outline_access_url']
+
+        async def prepare_data(label, user_id, referer_id, outline_key_id, new_expiration_at):
+            await db.add_payment(label, user_id, referer_id, 0, 0)
+            await db.update_payment_status_by_id(user_id, label, True)
+            await db.update_payment_referer_status_by_id(user_id, label, True)
+            await db.update_key_expiration(outline_key_id, label, new_expiration_at)
+            await db.update_free_months(user_id,-1)
+
+        if free_months > 0:
+            new_expiration_at = datetime.now() + relativedelta(months=1)
+            if outline_key_id and outline_access_url:                
+                print(f'\n GET FREE MONTH: OUTLINE KEY EXIST: {outline_key_id} \n')
+                await prepare_data(label, user_id, referer_id, outline_key_id, new_expiration_at)
+            else:                
+                print(f'\n GET FREE MONTH: OUTLINE KEY NOT EXIST: {outline_key_id} \n')
+                api_key = await db.get_server_key(int(server_id))
+                data = await outline.create_key(api_key)
+                outline_key_id = int(data.get('id'))
+                outline_access_url = data.get('accessUrl')
+                await outline.set_name_label(api_key, outline_key_id, label)
+                updatekey = await db.update_outline_key_id(user_id, 
+                                                        label, 
+                                                        outline_key_id, 
+                                                        outline_access_url)
+                print(f"\n Data: \n: {data} , {updatekey}")
+                await prepare_data(label, user_id, referer_id, outline_key_id, new_expiration_at)
+
+        else:
+            raise Exception("NO FREE MONTHS")
+
+        if outline_access_url:
+            await bot.send_message(user_id, (
+                f"Вы успешно применили бесплатный месяц!\n"
+                f"Ключ теперь Активен\n"
+                f"Вставьте вашу ссылку доступа в приложение Outline: \n"
+                f"<code>{outline_access_url}</code>\n\n"
+                                            ))
+    
+    except Exception as e:
+        print(f'ERROR: {e}')
+        await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
 
 def register_vpn_handlers(dp: Dispatcher):
     dp.register_message_handler(vpn_handler, commands=["vpn"], chat_type=ChatType.PRIVATE)
@@ -322,3 +386,4 @@ def register_vpn_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_trial, trial_callback.filter(action_type='trial'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(select_key, vpn_keys_callback.filter(action_type="showkeys"), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(delete_key, vpn_keys_callback.filter(action_type="delete_key"), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(get_free_month, vpn_keys_callback.filter(action_type="free_month"), chat_type=ChatType.PRIVATE)

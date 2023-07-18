@@ -87,6 +87,7 @@ class Database:
               "referer_id bigserial," \
               "referal_role VARCHAR(60) NOT NULL DEFAULT 'inviter'," \
               "user_account VARCHAR(255)," \
+              "free_months INT DEFAULT 0," \
               "UNIQUE (user_id))"
         return await self.execute(sql, execute=True)
     
@@ -166,6 +167,10 @@ class Database:
     async def show_users(self):
         sql = "SELECT * FROM vpn_users ORDER BY created_at ASC"
         return await self.execute(sql, fetch=True)
+    
+    async def update_free_months(self, user_id, amount):
+        sql = "UPDATE vpn_users SET free_months = free_months + $2 WHERE user_id = $1"
+        return await self.execute(sql, user_id, amount, execute=True)
 
     # KEYS #
 
@@ -224,6 +229,10 @@ class Database:
     async def set_key_active(self, key_id, label, active):
         sql = "UPDATE vpn_keys SET active=($3) WHERE outline_key_id=($1) AND label=($2)"
         return await self.execute(sql, key_id, label, active, execute=True)
+    
+    async def update_key_expiration(self, key_id, label, expiration):
+        sql = "UPDATE vpn_keys SET expiration_at=($3), active=True, bought=True WHERE outline_key_id=($1) AND label=($2)"
+        return await self.execute(sql, key_id, label, expiration, execute=True)
     
     # REFERALS
 
