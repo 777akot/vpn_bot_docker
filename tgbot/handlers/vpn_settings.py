@@ -9,6 +9,7 @@ import uuid
 import string
 import random
 import math
+from urllib.parse import quote
 
 from datetime import datetime, timedelta
 import pytz
@@ -41,15 +42,21 @@ async def vpn_p2p_callback_handler(callback_query: CallbackQuery):
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
                            reply_markup=await keyboard_servers_list('new_p2p_key'))
 
+async def generate_outline_link_with_servername(link, server_id):
+    server_data = await db.get_server_by_id(server_id)
+    print(f"\n GENERATE:{server_data}\n")
+    server_name_url = f"#{quote(server_data[0][0][1])}"
+    return f"{link}{server_name_url}"
 
 async def get_new_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    
     try:
         data = await outline.create_key(await db.get_server_key(int(callback_data['server'])))
         await bot.send_message(callback_query.from_user.id,
                                f'Вставьте вашу ссылку доступа в приложение Outline:')
         await bot.send_message(callback_query.from_user.id,
-                               f'{data["accessUrl"]}')
+                               f'<code>{await generate_outline_link_with_servername(data["accessUrl"], int(callback_data["server"]))}</code>')
         await callback_query.answer()
     except ClientConnectorError:
         await bot.send_message(callback_query.from_user.id,
@@ -67,7 +74,8 @@ async def generate_label():
         label_exists = any(x['label'] == label for x in labels)
         if not label_exists:
             return label
-                
+            
+
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     try:
@@ -169,7 +177,7 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
             await bot.send_message(callback_query.from_user.id,
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
             await bot.send_message(callback_query.from_user.id,
-                                f'<code>{accessUrl}</code>')
+                                f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
             await callback_query.answer()
         except ClientConnectorError:
             await bot.send_message(callback_query.from_user.id,
@@ -211,7 +219,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
             await bot.send_message(callback_query.from_user.id,
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
             await bot.send_message(callback_query.from_user.id,
-                                f'<code>{accessUrl}</code>')
+                                f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
             await callback_query.answer()
         except ClientConnectorError:
             await bot.send_message(callback_query.from_user.id,
@@ -284,7 +292,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     if accessUrl != None:
         text = (
             f"Вставьте вашу ссылку доступа в приложение Outline: \n"
-            f"<code>{accessUrl}</code>\n\n"
+            f"<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>\n\n"
             f"Сервер: <b>{server_name}</b>\n"
             f"Цена\Месяц: <b>{price}</b>\n"
             f"Активен до: <b>{key_expriration.date()}</b> Осталось: <b>{days_left}</b> дней\n\n"
@@ -369,7 +377,7 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
                 f"Вы успешно применили бесплатный месяц!\n"
                 f"Ключ теперь Активен\n"
                 f"Вставьте вашу ссылку доступа в приложение Outline: \n"
-                f"<code>{outline_access_url}</code>\n\n"
+                f"<code>{await generate_outline_link_with_servername(outline_access_url, int(server_id))}</code>\n\n"
                                             ))
     
     except Exception as e:

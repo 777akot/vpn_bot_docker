@@ -110,7 +110,7 @@ def keyboard_keys_actions(key_id: int, free_months: int):
     btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
     if free_months > 0: 
         keyboard.add(btn_trial)
-    # keyboard.row(btn_pay, btn_delete)
+    keyboard.row(btn_pay, btn_delete)
     return keyboard
 
 async def get_nickname(user_id):
