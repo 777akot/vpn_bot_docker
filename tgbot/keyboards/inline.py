@@ -85,7 +85,7 @@ async def keyboard_servers_list(action_type: str):
                                                                                           server=f'{x[0][0]}')))
     if action_type == 'to_delete':
         keyboard.row(InlineKeyboardButton(f'❌Выйти из меню', callback_data=f"cancel"))
-    keyboard.insert(InlineKeyboardButton(f'❌Отмена', callback_data=f"cancel"))
+    keyboard.row(InlineKeyboardButton(f'❌Отмена', callback_data=f"cancel"))
     return keyboard
 
 async def keyboard_keys_list(action_type: str, user_id: int):
