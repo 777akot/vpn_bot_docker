@@ -134,8 +134,8 @@ async def keyboard_show_users(users):
             else:
                 if value == False:
                     return "❌"
-
-        for x in users:
+        limited_users = users[:50]
+        for x in limited_users:
             print(f"\n user {x} \n")
             username = await get_nickname(x[1])
             keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
