@@ -165,7 +165,7 @@ class Database:
         return await self.execute(sql, user_id, trial_used, execute=True)
     
     async def show_users(self):
-        sql = "SELECT * FROM vpn_users ORDER BY created_at ASC"
+        sql = "SELECT * FROM vpn_users ORDER BY created_at DESC LIMIT 50"
         return await self.execute(sql, fetch=True)
     
     async def update_free_months(self, user_id, amount):
