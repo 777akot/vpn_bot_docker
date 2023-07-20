@@ -123,9 +123,10 @@ async def admin_delete_key(callback_query: CallbackQuery, callback_data: Dict[st
 
 async def admin_show_users(callback_query: CallbackQuery):
     print("\n admin_show_users: \n")
+    users = await db.show_users()
     try:
-        await dp.bot.send_message(callback_query.from_user.id, 'Пользователи:',
-                              reply_markup=await keyboard_show_users())
+        await dp.bot.send_message(callback_query.from_user.id, f'Пользователи: {len(users)}',
+                              reply_markup=await keyboard_show_users(users))
     except Exception as e:
         print(f"ERROR: {e}")
     

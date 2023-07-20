@@ -124,9 +124,9 @@ async def get_nickname(user_id):
             return nickname
     return None
 
-async def keyboard_show_users():
+async def keyboard_show_users(users):
     try: 
-        users = await db.show_users()
+       
         keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
         def show_emoji(value):
             if value == True:
