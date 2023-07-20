@@ -106,7 +106,8 @@ def keyboard_keys_actions(key_id: int, free_months: int):
     keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
     btn_trial = (InlineKeyboardButton(f' 🎟 Бесплатный доступ', callback_data=vpn_keys_callback.new(action_type="free_month",
                                                                                           key=key_id)))
-    btn_pay = (InlineKeyboardButton(f'💲 Оплатить', callback_data=f"cancel"))
+    btn_pay = (InlineKeyboardButton(f'💲 Оплатить', callback_data=vpn_keys_callback.new(action_type="prolong_key",
+                                                                                          key=key_id)))
     btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
     if free_months > 0: 
         keyboard.add(btn_trial)
@@ -124,20 +125,23 @@ async def get_nickname(user_id):
     return None
 
 async def keyboard_show_users():
-    users = await db.show_users()
-    keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
-    def show_emoji(value):
-        if value == True:
-            return "✔️"
-        else:
-            if value == False:
-                return "❌"
+    try: 
+        users = await db.show_users()
+        keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
+        def show_emoji(value):
+            if value == True:
+                return "✔️"
+            else:
+                if value == False:
+                    return "❌"
 
-    for x in users:
-        print(f"\n user {x} \n")
-        username = await get_nickname(x[1])
-        keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
-    return keyboard
+        for x in users:
+            print(f"\n user {x} \n")
+            username = await get_nickname(x[1])
+            keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
+        return keyboard
+    except Exception as e:
+        print(f"ERROR: {e}")
 
 def keyboard_admin_action():
     keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)

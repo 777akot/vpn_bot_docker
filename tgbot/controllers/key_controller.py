@@ -71,8 +71,8 @@ async def get_all_keys(user_id):
 
     predefined_keys = [x[0] for x in keys]
 
-    for x in keys:
-        print(f'\n X IN KEYS: {x[0]}')
+    # for x in keys:
+    #     print(f'\n X IN KEYS: {x[0]}')
     
     
     

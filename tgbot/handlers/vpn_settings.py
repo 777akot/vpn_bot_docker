@@ -324,9 +324,6 @@ async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     print(f"\n KEY DATA: {key_data[0]} : {key_data[1]}\n")
     await bot.send_message(callback_query.from_user.id, f'Ключ удалён')
 
-async def prolong_key():
-    return
-
 async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     try:
         label = callback_data['key']
@@ -384,6 +381,20 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
         print(f'ERROR: {e}')
         await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
 
+async def wait_for_payment():
+    return
+
+async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    try:
+        print(f"\n PROLONG KEY: {callback_data}")
+        label = callback_data['key']
+
+
+        return
+    except Exception as e:
+        print(f"ERROR: {e}")
+
+
 def register_vpn_handlers(dp: Dispatcher):
     dp.register_message_handler(vpn_handler, commands=["vpn"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(vpn_callback_handler, vpn_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
@@ -395,3 +406,4 @@ def register_vpn_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(select_key, vpn_keys_callback.filter(action_type="showkeys"), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(delete_key, vpn_keys_callback.filter(action_type="delete_key"), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_free_month, vpn_keys_callback.filter(action_type="free_month"), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(prolong_key, vpn_keys_callback.filter(action_type="prolong_key"), chat_type=ChatType.PRIVATE)

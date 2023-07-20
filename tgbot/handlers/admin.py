@@ -122,9 +122,13 @@ async def admin_delete_key(callback_query: CallbackQuery, callback_data: Dict[st
     print("\n admin_delete_key: \n", data)
 
 async def admin_show_users(callback_query: CallbackQuery):
-    await dp.bot.send_message(callback_query.from_user.id, 'Пользователи:',
-                              reply_markup=await keyboard_show_users())
     print("\n admin_show_users: \n")
+    try:
+        await dp.bot.send_message(callback_query.from_user.id, 'Пользователи:',
+                              reply_markup=await keyboard_show_users())
+    except Exception as e:
+        print(f"ERROR: {e}")
+    
 
 async def admin_test_referal(message: Message):
     await message.answer("Тестовая выплата")
