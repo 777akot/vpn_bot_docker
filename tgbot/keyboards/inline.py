@@ -124,9 +124,8 @@ async def get_nickname(user_id):
             return nickname
     return None
 
-async def keyboard_show_users(users):
+async def keyboard_show_users(users_chunk):
     try: 
-       
         keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
         def show_emoji(value):
             if value == True:
@@ -135,15 +134,11 @@ async def keyboard_show_users(users):
                 if value == False:
                     return "❌"
 
-        chunk_size = 50
-        for i in range(0, len(users), chunk_size):
-            users_chunk = users[i:i + chunk_size]
-
-            for x in users_chunk:
-                print(f"\n user {x} \n")
-                username = await get_nickname(x[1])
-                keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
-            return keyboard
+        for x in users_chunk:
+            print(f"\n user {x} \n")
+            username = await get_nickname(x[1])
+            keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
+        return keyboard
     except Exception as e:
         print(f"ERROR: {e}")
 
