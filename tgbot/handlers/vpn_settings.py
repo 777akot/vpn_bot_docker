@@ -16,8 +16,8 @@ import pytz
 from dateutil.relativedelta import relativedelta
 
 from loader import db, bot, outline, quickpay, key_config, referer_config, admin_ids
-from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback, vpn_keys_callback
-from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions, keyboard_cancel
+from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback, vpn_keys_callback, vpn_prolong_callback
+from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions, keyboard_cancel, keyboard_prolong_payment
 
 from tgbot.controllers import key_controller
 from tgbot.controllers import p2p_payments
@@ -110,7 +110,9 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
 
         print(f'\n REFERER : {referer_id}, {referer_payout} \n')
 
-        await db.add_payment(label, owner_id, referer_id, price, referer_payout)
+        new_payment = await db.add_payment(label, owner_id, referer_id, price, referer_payout)
+
+        print(f"\n NEW PAYMENT: {new_payment}")
 
         # return
         #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
@@ -381,16 +383,89 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
         print(f'ERROR: {e}')
         await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
 
-async def wait_for_payment():
+async def wait_for_payment(user_id, label, payment_id):
+    await p2p_payments.check_payment(user_id, label, payment_id)
     return
 
 async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     try:
         print(f"\n PROLONG KEY: {callback_data}")
-        label = callback_data['key']
+        user_id = callback_query.from_user.id
+        user_data = await db.get_user_by_id(user_id)
+        referer_id = int(user_data[0]["referer_id"]) if user_data[0].get("referer_id") else None
+        referer_payout = (int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None) if referer_id else None
 
+        if referer_id != None:
+            print(f'\n REFERER EXIST: {referer_id}')
+            referer_payout = int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None
+
+        label = callback_data['key']
+        key_data = await db.get_key_all_data_by_label(label)
+        server_id = key_data[0]['server_id']
+        server = await db.get_server_by_id(int(server_id))
+        server_name = server[0][0][1]
+        server_price = server[0][0][2]
+
+        success_url = f"http://80.90.179.110/:6060/process?label={label}&status=some_status"
+
+        if key_data[0]['outline_key_id']:
+            print(f"\n PROLONG KEYDATA: {key_data[0]['outline_key_id']}")
+
+        new_payment = await db.add_payment(label, user_id, referer_id, server_price, referer_payout)
+        print(f"\n NEW PAYMENT: {new_payment['id']}")
+        quickpay = await p2p_payments.create_payment(label, server_price)
+        print(f"\n Quickpay: {quickpay}")
+        await bot.send_message(user_id,
+                                    f'Вы выбрали сервер <b>{server_name}</b> \n'
+                                    f'Стоимость ежемесячной подписки <b>{server_price} RUB</b> \n \n'
+                                    ,
+                                    reply_markup=await keyboard_prolong_payment(
+                                                                            quickpay.redirected_url,
+                                                                            label,
+                                                                            server_id,
+                                                                            new_payment['id']                                                                  
+                                                                            ))
+                               
+        # payment_status = await wait_for_payment(user_id, label, )
 
         return
+    except Exception as e:
+        print(f"ERROR: PROLONG KEY: {e}")
+
+async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
+    try:
+        print(f"get_prolong_key: {callback_data}")
+        label = callback_data['label']
+        payment_id = callback_data['payment_id']
+        server_id = callback_data['server']
+
+        paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment_id)
+        if paymentstatus == True:
+            check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
+            accessUrl = check_outline_key[1]
+            if check_outline_key[0] == None:
+                api_key = await db.get_server_key(int(server_id))
+                data = await outline.create_key(api_key)
+                key_id = int(data.get('id'))
+                key_accessUrl = data.get('accessUrl')
+                await outline.set_name_label(api_key, key_id, label)
+                updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
+                                                           label,
+                                                           key_id, 
+                                                           key_accessUrl)
+                print(f"\n Data: \n: {data} , {updatekey}")
+                accessUrl = key_accessUrl
+                await bot.send_message(callback_query.from_user.id,
+                                f'Вставьте вашу ссылку доступа в приложение Outline:')
+                await bot.send_message(callback_query.from_user.id,
+                                    f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
+                await callback_query.answer()
+            await bot.send_message(callback_query.from_user.id,
+                                f'Ключ успешно оплачен!')
+        elif paymentstatus == False:
+            await bot.send_message(callback_query.from_user.id,
+                                f'Оплата ещё не прошла. Попробуйте позже...')
+
     except Exception as e:
         print(f"ERROR: {e}")
 
@@ -407,3 +482,4 @@ def register_vpn_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(delete_key, vpn_keys_callback.filter(action_type="delete_key"), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_free_month, vpn_keys_callback.filter(action_type="free_month"), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(prolong_key, vpn_keys_callback.filter(action_type="prolong_key"), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(get_prolong_key, vpn_prolong_callback.filter(action_type='prolong_key'), chat_type=ChatType.PRIVATE)

@@ -9,6 +9,7 @@ from aiogram.types import BotCommand
 from aiogram.utils import executor
 from loader import dp, bot  # , config
 from tgbot.controllers import key_controller
+from tgbot.handlers.http_handler import handle_http_request, handle_http_payments
 
 logger = logging.getLogger(__name__)
 
@@ -70,24 +71,11 @@ async def on_shutdown(dispatcher):
     await db.close()
     await outline.close()
 
-async def handle_http_request(request):
-    print('\n Handle_http_request \n')
-    # keys = await key_controller.disable_expired_keys()
-    
-    # # Получаем данные из запроса
-    # data = await request.json()
-
-    # # Отправляем сообщение боту
-    # chat_id = data.get('chat_id')
-    # text = data.get('text')
-    # await bot.send_message(chat_id, text)
-
-    return web.Response(text='Сообщение отправлено')
-
 if __name__ == '__main__':
 
     app = web.Application()
     app.router.add_post('/api', handle_http_request)
+    app.router.add_get('/process', handle_http_payments)
 
     # If you use polling
     def start_bot():

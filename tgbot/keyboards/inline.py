@@ -3,7 +3,7 @@ import logging
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, User
 
 from loader import db, dp
-from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback
+from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback, vpn_prolong_callback
 
 from tgbot.controllers import key_controller
 
@@ -37,6 +37,16 @@ def permanent_keyboard():
     button2 = KeyboardButton("🗝 Мои ключи")
     perm_keyboard.add(button1, button2)
     return perm_keyboard
+
+async def keyboard_prolong_payment(quickpay_url: str, label: str, server: str, payment_id: int):
+    try:
+        keyboard = InlineKeyboardMarkup()
+        inline_btn_1 = InlineKeyboardButton(f'Перейти к оплате!', url=quickpay_url)
+        inline_btn_2 = InlineKeyboardButton(f'Я оплатил!', callback_data=vpn_prolong_callback.new(action_type='prolong_key', server=server, label=label, payment_id=payment_id))
+        keyboard.add(inline_btn_1, inline_btn_2)
+        return keyboard
+    except Exception as e:
+        print(f"ERROR: KEYBOARD : {e}")
 
 async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, server: str):
     keyboard = InlineKeyboardMarkup()
@@ -111,7 +121,7 @@ def keyboard_keys_actions(key_id: int, free_months: int):
     btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
     if free_months > 0: 
         keyboard.add(btn_trial)
-    keyboard.row(btn_pay, btn_delete)
+    # keyboard.row(btn_pay, btn_delete)
     return keyboard
 
 async def get_nickname(user_id):

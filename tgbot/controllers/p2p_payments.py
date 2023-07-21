@@ -117,14 +117,15 @@ async def referal_payment(user_id,label):
         print(f"ERROR: {e}")
     return
 
-async def create_payment(label, price: int):
+async def create_payment(label, price: int, successURL=None):
     qp = Quickpay(
         receiver=quickpay['receiver'],
         quickpay_form=quickpay['quickpay_form'],
         targets=quickpay['targets'],
         paymentType=quickpay['paymentType'],
         sum=price,
-        label=label
+        label=label,
+        successURL=successURL
     )
     return qp
 
@@ -139,18 +140,24 @@ async def check_yoomoney(label):
     else:
         return None
 
-async def check_payment(user_id, label):
+async def check_payment(user_id, label, payment_id=None):
     print("\n CHECK PAYMENT: \n")
+    print(f"\n USER_ID: {user_id}. LABEL: {label}. PAYMENT_ID: {payment_id}")
     #СМОТРИМ В БАЗЕ БЫЛ ЛИ УЖЕ ОПЛАЧЕН КЛЮЧ И ЕСТЬ ОТМЕТКА В БАЗЕ
     key_data = await db.get_payment_status(user_id, label)
+    #PATMENT_CREATED НУЖЕН ЧТОБЫ ВЗЯТЬ ТОЛЬКО ТЕ ОПЕРАЦИИ КОТОРЫЕ СОЗДАНЫ ПОСЛЕ СОЗДАНИЯ ПЛАТЕЖКИ PAYMENT
+    payment_data = await db.get_payment_by_payment_id(int(user_id), label, int(payment_id)) if payment_id else None
+    print(f"\n Payment_data: {payment_data}")
+    payment_created = payment_data[0]['created_at'] if payment_data and len(payment_data) > 0 else None
+    payment_sum_paid = payment_data[0]['sum_paid'] if payment_data and len(payment_data) > 0 else None
     label = key_data[0]
     bought = key_data[1]
     print("\n KEY_DATA: \n", key_data)
 
     #ЗДЕСЬ ОБРАЩЕНИЕ К PAYMENT API (YOOMONEY) ДЛЯ ПРОВЕРКИ ОПЛАТЫ
-    if bought == False:
+    if bought == False or payment_sum_paid == False:
         client = Client(yooclient['token'])
-        history = client.operation_history(label=label)
+        history = client.operation_history(label=label,from_date=payment_created)
         try:
             operation = history.operations[-1]
             #ЕСЛИ ОПЛАТА ПРОШЛА - МЕНЯЕТ PAYMENT STATUS (BOUGHT)

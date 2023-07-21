@@ -89,7 +89,7 @@ async def save_partner(message: Message, state: FSMContext):
         account = message.text.strip()
         if not account.isdigit():
             await dp.bot.send_message(message.from_user.id, 'Не похоже на номер аккаунта')
-        if not len(str(account)) == 16:
+        if not (len(str(account)) == 16 or len(str(account)) >= 14):
             await dp.bot.send_message(message.from_user.id, 'Введите 16-ти значный номер аккаунта Yoo')
         else:
             res = ""

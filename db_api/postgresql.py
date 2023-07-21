@@ -256,8 +256,8 @@ class Database:
     # PAYMENTS
 
     async def add_payment(self, label, user_id, referer_id, sum, referer_payout):
-        sql = "INSERT INTO vpn_payments (label, user_id, referer_id, sum, referer_payout) VALUES ($1, $2, $3, $4, $5)"
-        return await self.execute(sql, label, user_id, referer_id, sum, referer_payout, execute=True)
+        sql = "INSERT INTO vpn_payments (label, user_id, referer_id, sum, referer_payout) VALUES ($1, $2, $3, $4, $5) RETURNING id, label, user_id, referer_id, sum, referer_payout"
+        return await self.execute(sql, label, user_id, referer_id, sum, referer_payout, fetchrow=True)
     
     async def get_all_payments(self):
         sql = "SELECT (label, user_id) from vpn_payments"
@@ -266,6 +266,10 @@ class Database:
     async def get_payment_by_id(self, label, user_id):
         sql = "SELECT * FROM vpn_payments WHERE label=$1 AND user_id=$2 ORDER BY created_at DESC"
         return await self.execute(sql, label, user_id, fetch=True)
+    
+    async def get_payment_by_payment_id(self, user_id, label, payment_id):
+        sql = "SELECT * FROM vpn_payments WHERE label=$2 AND user_id=$1 AND id=$3 ORDER BY created_at DESC"
+        return await self.execute(sql, user_id, label, payment_id, fetch=True)
 
     async def get_payment_by_referer_id(self, referer_id):
         sql = "SELECT (sum, referer_payout) FROM vpn_payments WHERE referer_id=$1 AND referer_payout_paid='True'"
