@@ -11,6 +11,7 @@ from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_s
 
 from tgbot.controllers.referal import get_referal_users
 from tgbot.handlers.partner import check_partner, partner_start
+from tgbot.handlers.admin import admin_start
 
 
 def extract_referer_id(text):
@@ -34,6 +35,9 @@ async def clear_screen(message):
 
 async def p2p_start(message: Message):
 
+    is_admin = False
+    if message.chat.id in admin_ids:
+        is_admin = True
     # await clear_screen(message)
     print("START")
     referer_id = extract_referer_id(message.text)
@@ -52,7 +56,7 @@ async def p2p_start(message: Message):
             return "\u00A0" * count
             
 
-        await bot.send_message(chat_id=message.chat.id,text=f"Привет, {message.chat.first_name}! \n\n",reply_markup=permanent_keyboard())
+        await bot.send_message(chat_id=message.chat.id,text=f"Привет, {message.chat.first_name}! \n\n",reply_markup=permanent_keyboard(is_admin))
         await message.answer(
                              f'<b>🕹 Главное меню </b>\n\n'
                              f'Пользоваться VPN без рекламы и тормозов – проще! 🌐🚀\n\n'
@@ -128,6 +132,13 @@ async def show_info(message: Message):
                          ,parse_mode="HTML")
 
 async def text_process(message: Message):
+    if message.text == '🛠 Админка':
+        await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id in admin_ids:
+                    msg = message
+                    msg.text = "/admin"
+                    await admin_start(msg)
+
     if message.text == '🕹 Главное меню':
         await bot.delete_message(message.chat.id, message.message_id)
         msg = message

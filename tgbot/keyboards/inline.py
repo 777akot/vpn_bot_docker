@@ -27,7 +27,7 @@ def keyboard_p2p_start():
 
     return keyboard.add(inline_btn_1, inline_btn_2, inline_btn_3, inline_btn_4)
 
-def permanent_keyboard():
+def permanent_keyboard(is_admin=False):
     perm_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     # button1 = KeyboardButton(text=f'Доступ к VPN',
     #                                     callback_data=vpn_p2p_callback.new(action_type='vpn_settings', server='no'))
@@ -35,7 +35,9 @@ def permanent_keyboard():
     # button3 = KeyboardButton(text=f"Чат поддержки", url="https://t.me/vpnhubsupportchat")
     button1 = KeyboardButton("🕹 Главное меню")
     button2 = KeyboardButton("🗝 Мои ключи")
+    button3 = KeyboardButton("🛠 Админка")
     perm_keyboard.add(button1, button2)
+    if is_admin: perm_keyboard.add(button3)
     return perm_keyboard
 
 async def keyboard_prolong_payment(quickpay_url: str, label: str, server: str, payment_id: int):
