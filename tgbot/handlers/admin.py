@@ -71,7 +71,6 @@ async def admin_testpay(message: Message):
     for x in users:
         try:
             chat = await dp.bot.get_chat(x['user_id'])
-            print(chat)
         except Exception as e:
             errors.append(x)
             print(f"Error: {e}")
