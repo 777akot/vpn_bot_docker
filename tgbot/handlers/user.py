@@ -36,6 +36,8 @@ async def clear_screen(message):
 async def p2p_start(message: Message):
 
     is_admin = False
+
+
     if message.chat.id in admin_ids:
         is_admin = True
     # await clear_screen(message)
@@ -48,6 +50,11 @@ async def p2p_start(message: Message):
         ref = int(referer_id)
     try:
         await db.add_user(message.chat.id, message.chat.first_name, ref)
+        try:
+            for x in admin_ids:
+                bot.send_message(x, f"Новый пидорок: {message.chat.first_name}")
+        except Exception as e:
+            print(f"ERROR: P2P START: {e}")
     except Exception as e:
         print(f'error: {e}')
         pass
