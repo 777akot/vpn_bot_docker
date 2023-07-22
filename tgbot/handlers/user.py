@@ -45,7 +45,7 @@ async def p2p_start(message: Message):
     referer_id = extract_referer_id(message.text)
     ref = referer_id
     if referer_id is not None:
-        # await message.answer('referer_id: ' + referer_id)     
+        # await message.answer('referer_id: ' + referer_id)
         print(f'referer_id: {referer_id}')
         ref = int(referer_id)
     try:
