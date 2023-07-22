@@ -183,13 +183,20 @@ async def admin_send_notification_send(message: Message, state: FSMContext):
     await state.update_data(message_text=message_text)
     await state.finish()
     users = await db.show_users()
+    errors = []
+    sliced_users = users[5:]
+    for x in sliced_users:
+        try:
+            print(f"USER: {x}")
+            user_id = x['user_id']
+            # await dp.bot.send_message(x['user_id'],'Привет')
+            await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
+        except Exception as e:
+            errors.append(x)
+            print(f"ERROR: {e}")
     
-    for x in users:
-        print(f"USER: {x}")
-        user_id = x['user_id']
-        # await dp.bot.send_message(x['user_id'],'Привет')
-        await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
-    
+    if len(errors) > 0:
+        print(f"\n Errors: {errors}")
     
 async def admin_renew_trial(message: Message):
     await db.set_trial_used(message.from_user.id, False)

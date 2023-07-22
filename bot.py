@@ -9,7 +9,7 @@ from aiogram.types import BotCommand
 from aiogram.utils import executor
 from loader import dp, bot  # , config
 from tgbot.controllers import key_controller
-from tgbot.handlers.http_handler import handle_http_request, handle_http_payments
+from tgbot.handlers.http_handler import handle_http_request, handle_http_payments, handle_http_getchat
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +76,7 @@ if __name__ == '__main__':
     app = web.Application()
     app.router.add_post('/api', handle_http_request)
     app.router.add_get('/process', handle_http_payments)
+    app.router.add_get('/getchat', handle_http_getchat)
 
     # If you use polling
     def start_bot():

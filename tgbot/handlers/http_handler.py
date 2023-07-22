@@ -24,3 +24,7 @@ async def handle_http_payments(request):
     return web.Response(text=f"Label: {label}, Status: {status}")
     
     return web.Response(text='Оплата прошла! Вернитесь в бот...')
+
+async def handle_http_getchat(request):
+    print(f"HANDLE HTTP GETchat")
+    
