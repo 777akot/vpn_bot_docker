@@ -29,14 +29,18 @@ async def disable_expired_keys():
                 print(f'KEY_ID: {key_id}\n')
                 print(f'API_LINK: {api_link}\n')
                 if not key_id:
-                    raise "Invalid Key ID"
+                    raise Exception("Invalid Key ID")
                 if not api_link:
-                    raise "Invalid Api Link"
+                    raise Exception("Invalid Api Link")
                 
                 await outline.set_data_limit(api_link, key_id)
                 await db.update_payment_status(user_id, label, False)
                 # await db.set_key_active(key_id, label, False)
 
+            # if key_active == False or key_bought = False
+        
+
+            
         return
     except Exception as e:
         print(f'\n ERROR: {e}\n')

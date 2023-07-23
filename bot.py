@@ -8,7 +8,6 @@ from aiogram.types import BotCommand
 
 from aiogram.utils import executor
 from loader import dp, bot  # , config
-from tgbot.controllers import key_controller
 from tgbot.handlers.http_handler import handle_http_request, handle_http_payments, handle_http_getchat
 
 logger = logging.getLogger(__name__)

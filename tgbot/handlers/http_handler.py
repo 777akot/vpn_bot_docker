@@ -1,4 +1,5 @@
 from aiohttp import web
+from tgbot.controllers import key_controller
 
 async def handle_http_request(request):
     print('\n Handle_http_request \n')
@@ -27,4 +28,3 @@ async def handle_http_payments(request):
 
 async def handle_http_getchat(request):
     print(f"HANDLE HTTP GETchat")
-    
