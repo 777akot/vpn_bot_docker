@@ -112,7 +112,7 @@ async def keyboard_keys_list(action_type: str, user_id: int):
                                                                                           key=f'{x[3]}')))
     return keyboard
 
-def keyboard_keys_actions(key_id: int, free_months: int):
+def keyboard_keys_actions(key_id: int, free_months: int, is_admin=False):
     print(f"\n key_id {key_id} \n")
 
     keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
@@ -123,7 +123,9 @@ def keyboard_keys_actions(key_id: int, free_months: int):
     btn_delete = (InlineKeyboardButton(f'❌ Удалить Ключ', callback_data=vpn_keys_callback.new(action_type="delete_key",key=key_id)))
     if free_months > 0: 
         keyboard.add(btn_trial)
-    # keyboard.row(btn_pay, btn_delete)
+
+    if is_admin:
+        keyboard.row(btn_pay, btn_delete)
     return keyboard
 
 async def get_nickname(user_id):

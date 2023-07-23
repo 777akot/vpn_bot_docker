@@ -243,9 +243,11 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     #     await bot.send_message(callback_query.from_user.user_id, "Выполнено")
         
     # await confirm_dialog(callback_query, test_func)
-    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id
+
     label = callback_data['key']
     user_id = callback_query.from_user.id
+    is_admin = user_id in admin_ids
     user_data = await db.get_user_by_id(user_id)
     free_months = (user_data[0]['free_months'] if user_data[0]['free_months'] > 0 else 0) if len(user_data) > 0 else 0
 
@@ -301,7 +303,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
             )
     await bot.send_message(callback_query.from_user.id,
                            text,
-                            reply_markup=keyboard_keys_actions(callback_data['key'],free_months),parse_mode="HTML", disable_web_page_preview=True
+                            reply_markup=keyboard_keys_actions(callback_data['key'],free_months,is_admin),parse_mode="HTML", disable_web_page_preview=True
                             )
 
 async def delete_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
