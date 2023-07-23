@@ -50,12 +50,12 @@ async def p2p_start(message: Message):
         ref = int(referer_id)
     try:
         await db.add_user(message.chat.id, message.chat.first_name, ref)
-        # try:
-        #     for x in admin_ids:
-        #         users = await db.show_users()
-        #         bot.send_message(chat_id=x, text=f"Новый пидорок: {message.chat.first_name} Всего теперь: {len(users)}")
-        # except Exception as e:
-        #     print(f"ERROR: P2P START: {e}")
+        try:
+            for x in admin_ids:
+                users = await db.show_users()
+                bot.send_message(chat_id=x, text=f"Новый пользователь: {message.chat.first_name} Всего теперь: {len(users)}")
+        except Exception as e:
+            print(f"ERROR: P2P START: {e}")
     except Exception as e:
         print(f'error: {e}')
         pass
