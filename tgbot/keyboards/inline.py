@@ -130,9 +130,9 @@ def keyboard_keys_actions(key_id: int, free_months: int, is_admin=False):
 
 async def get_nickname(user_id):
     user = await dp.bot.get_chat(user_id)
-    print(f"\n get_nickname: {user} \n")
+    # print(f"\n get_nickname: {user} \n")
     if "username" in user:
-        print(f"\n IS INSTANCE \n")
+        # print(f"\n IS INSTANCE \n")
         nickname = user.username
         if nickname:
             return nickname
@@ -149,7 +149,7 @@ async def keyboard_show_users(users_chunk):
                     return "❌"
 
         for x in users_chunk:
-            print(f"\n user {x} \n")
+            # print(f"\n user {x} \n")
             username = await get_nickname(x[1])
             keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} Триал:{show_emoji(x[5])} Оплата:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
         return keyboard
