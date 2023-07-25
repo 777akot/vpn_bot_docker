@@ -202,9 +202,9 @@ class Database:
         sql = "SELECT (server_id, outline_key_id) FROM vpn_keys WHERE label=$1"
         return await self.execute(sql, label, fetchval=True)
     
-    async def delete_key(self, key_id, server_id):
+    async def delete_key(self, label, server_id):
         sql = "DELETE FROM vpn_keys WHERE label=$1 AND server_id=$2"
-        return await self.execute(sql, key_id, server_id, execute=True)
+        return await self.execute(sql, label, server_id, execute=True)
 
     async def update_key(self, key_id, label):
         sql = "UPDATE vpn_keys SET label=($2) WHERE key_id=($1)"
@@ -261,6 +261,10 @@ class Database:
     
     async def get_all_payments(self):
         sql = "SELECT (label, user_id) from vpn_payments"
+        return await self.execute(sql, fetch=True)
+    
+    async def get_all_payments_data(self):
+        sql = "SELECT * from vpn_payments"
         return await self.execute(sql, fetch=True)
 
     async def get_payment_by_id(self, label, user_id):

@@ -1,2 +1,2 @@
-* * * * * echo 'HELLO' 
-* * * * * curl -X POST 'http://vpn_bot:6060/api' 
+0 0 * * * echo 'HELLO' 
+0 0 * * * curl -X POST 'http://vpn_bot:6060/api' 

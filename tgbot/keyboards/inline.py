@@ -124,8 +124,10 @@ def keyboard_keys_actions(key_id: int, free_months: int, is_admin=False):
     if free_months > 0: 
         keyboard.add(btn_trial)
 
+    keyboard.add(btn_pay)
+
     if is_admin:
-        keyboard.row(btn_pay, btn_delete)
+        keyboard.add(btn_delete)
     return keyboard
 
 async def get_nickname(user_id):

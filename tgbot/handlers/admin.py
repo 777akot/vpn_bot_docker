@@ -13,6 +13,7 @@ from tgbot.states.partners_add import AddPartnerState
 from tgbot.states.notification_add import AddNotificationState
 
 from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment, check_yoomoney
+from tgbot.controllers import key_controller, p2p_payments, notifications_controller
 
 async def admin_start(message: Message):
     await message.answer('Выберите действие:', reply_markup=keyboard_admin_action())
@@ -84,41 +85,7 @@ async def admin_testpay(message: Message):
 
     return
 
-    payments = await db.get_all_payments()
-    for x in payments:
-        print(f"\n X: {x[0][0]}")
-        label = x[0][0]
-        user_id = x[0][1]
-        print(f"{label}\n")
-        status = await check_yoomoney(label)
-        key_exist = await db.get_key_all_data_by_label(label)
-        
-        if len(key_exist) == 0:
-            print(f'KEY NOT EXIST: {key_exist}')
-            await db.delete_payment_by_label(user_id, label)
-            await dp.bot.send_message(message.from_user.id, f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
-
-        else:
-            key_item = key_exist[0]
-            server_id = key_item['server_id']
-            api_key = await db.get_server_key(int(server_id))
-            key_id = key_item['outline_key_id']
-            await outline.set_name_label(api_key, key_id, label)
-            await dp.bot.send_message(message.from_user.id, f'KEY EXIST')
-
-        if status:
-            await dp.bot.send_message(message.from_user.id, f'L: {label}. S: {status}')
-        else:
-            payment_status = await db.get_payment_by_id(label, int(user_id))
-            for p in payment_status:
-                label = p['label']
-                payment_sum = p['sum']
-                payment_sum_paid = p['sum_paid']
-                if payment_sum > 0 and status is None:
-                    # await db.update_payment_trial(user_id, label)
-                    print(f"\n Payment status: {p['sum']}")
-                    await dp.bot.send_message(message.from_user.id, f'P: {p["sum"]} Paid: {payment_sum_paid==True} L: {label}')
-                
+    
             # 
     # await yoopay()
 
@@ -230,8 +197,78 @@ async def text_process(message: Message):
             msg.text = "/admin"
             await admin_start(msg)
 
+async def admin_trial_all(message: Message):
+    try:
+        print(f"\n ADMIN_TRIAL_PROLONG_ALL:")
+        await key_controller.trial_prolong_for_all()
+
+    except Exception as e:
+        print(f"ERROR: ADMIN_TRIAL_PROLONG_ALL '{e}'")
+
+async def admin_set_trial_sum(message: Message):
+    try:
+        print(f"admin_set_trial_sum:")
+        payments = await db.get_all_payments()
+        for x in payments:
+            print(f"\n X: {x[0][0]}")
+            label = x[0][0]
+            user_id = x[0][1]
+            print(f"{label}\n")
+            status = await check_yoomoney(label)
+            key_exist = await db.get_key_all_data_by_label(label)
+            
+            if len(key_exist) == 0:
+                print(f'KEY NOT EXIST: {key_exist}')
+                await db.delete_payment_by_label(user_id, label)
+                await dp.bot.send_message(message.from_user.id, f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
+
+            else:
+                key_item = key_exist[0]
+                server_id = key_item['server_id']
+                api_key = await db.get_server_key(int(server_id))
+                key_id = key_item['outline_key_id']
+                await outline.set_name_label(api_key, key_id, label)
+                await dp.bot.send_message(message.from_user.id, f'KEY EXIST')
+
+            if status:
+                await dp.bot.send_message(message.from_user.id, f'L: {label}. S: {status}')
+            else:
+                payment_status = await db.get_payment_by_id(label, int(user_id))
+                for p in payment_status:
+                    label = p['label']
+                    payment_sum = p['sum']
+                    payment_sum_paid = p['sum_paid']
+                    if payment_sum > 0 and status is None:
+                        await db.update_payment_trial(user_id, label)
+                        print(f"\n Payment status: {p['sum']}")
+                        await dp.bot.send_message(message.from_user.id, f'P: {p["sum"]} Paid: {payment_sum_paid==True} L: {label}')
+                    
+    except Exception as e:
+        print(f"ERROR: admin_set_trial_sum '{e}'")
+
+async def admin_disable_expired(message):
+    try:
+        print(f"admin_disable_expired")
+        await key_controller.delete_unused_keys()
+        await p2p_payments.delete_unused_payments()
+        await key_controller.disable_expired_keys()
+    except Exception as e:
+        print(f"ERROR: admin_disable_expired '{e}'")
+
+async def admin_notification_expired(message):
+    try:
+        for x in admin_ids:
+            print(f"admin_notification_expired")
+            await notifications_controller.send_expiration_notification(x)
+        
+    except Exception as e:
+        print(f"ERROR: admin_notification_expired {e}")
 
 def register_admin(dispatcher: Dispatcher):
+    dispatcher.register_message_handler(admin_notification_expired, commands=["admin_notification_expired"], chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_message_handler(admin_disable_expired, commands=["admin_disable_expired"], chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_message_handler(admin_set_trial_sum, commands=["admin_set_trial_sum"], chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_message_handler(admin_trial_all, commands=["admin_trial_all"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_testpay, commands=["admin_pay"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_start, commands=["admin"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_callback_query_handler(admin_add_server, lambda c: c.data and c.data == 'add_server',

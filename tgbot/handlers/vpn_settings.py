@@ -44,7 +44,7 @@ async def vpn_p2p_callback_handler(callback_query: CallbackQuery):
 
 async def generate_outline_link_with_servername(link, server_id):
     server_data = await db.get_server_by_id(server_id)
-    print(f"\n GENERATE:{server_data}\n")
+    print(f"\n GENERATE OUTLINE LINK:{server_data}\n")
     server_name_url = f"#{quote(server_data[0][0][1])}"
     return f"{link}{server_name_url}"
 
@@ -203,6 +203,8 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
         try:
             accessUrl = check_outline_key[1]
             if check_outline_key[0] == None:
+                current_date = datetime.now(pytz.utc)
+                new_expiration_at = current_date + timedelta(days=7)
                 api_key = await db.get_server_key(int(server_id))
                 data = await outline.create_key(api_key)
                 key_id = int(data.get('id'))
@@ -212,6 +214,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
                                                            label, 
                                                            key_id, 
                                                            key_accessUrl)
+                await db.update_key_expiration(key_id, label, new_expiration_at)
                 print(f"\n Data: \n: {data} , {updatekey}")
                 accessUrl = key_accessUrl
 
@@ -266,7 +269,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label)
     payment = await db.get_payment_by_id(label, int(user_id))
     # ЕСЛИ В ПЛАТЕЖКЕ ЦЕНА БОЛЬШЕ НУЛЯ ТО СТАВИТСЯ ТЕКУЩАЯ ЦЕНА ИЗ ЦЕНЫ СЕРВЕРА (server_price)
-    price = (server_price if payment[0]['sum'] > 0 else "Free") if len(payment) > 0 else server_price
+    price = (server_price if payment[0]['sum'] > 0 else f"Free ({server_price})") if len(payment) > 0 else server_price
     check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
     if paymentstatus == True and server_id is not None:
         try:
@@ -345,12 +348,15 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
         outline_key_id = key_data[0]['outline_key_id']
         outline_access_url = key_data[0]['outline_access_url']
 
+   
+
         async def prepare_data(label, user_id, referer_id, outline_key_id, new_expiration_at):
             await db.add_payment(label, user_id, referer_id, 0, 0)
             await db.update_payment_status_by_id(user_id, label, True)
             await db.update_payment_referer_status_by_id(user_id, label, True)
             await db.update_key_expiration(outline_key_id, label, new_expiration_at)
             await db.update_free_months(user_id,-1)
+            await outline.remove_data_limit(await db.get_server_key(int(server_id)), outline_key_id)
 
         if free_months > 0:
             new_expiration_at = datetime.now() + relativedelta(months=1)
@@ -370,7 +376,6 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
                                                         outline_access_url)
                 print(f"\n Data: \n: {data} , {updatekey}")
                 await prepare_data(label, user_id, referer_id, outline_key_id, new_expiration_at)
-
         else:
             raise Exception("NO FREE MONTHS")
 
@@ -404,6 +409,10 @@ async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,st
 
         label = callback_data['key']
         key_data = await db.get_key_all_data_by_label(label)
+        key_active = key_data[0]['active']
+        if key_active==True:
+            raise Exception('KEY_IS_ACTIVE')
+        
         server_id = key_data[0]['server_id']
         server = await db.get_server_by_id(int(server_id))
         server_name = server[0][0][1]
@@ -434,6 +443,12 @@ async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,st
         return
     except Exception as e:
         print(f"ERROR: PROLONG KEY: {e}")
+        if e:
+            print('KEY_IS_ACTIVE' in str(e))
+            if "KEY_IS_ACTIVE" in str(e):
+                await bot.send_message(user_id,f"Ключ уже активен и не нуждается в продлении")
+                return
+            await bot.send_message(user_id,f"Что-то пошло не так, попробуйте ещё раз или обратитесь в чат-поддержки...")
 
 async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     try:
@@ -441,11 +456,16 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
         label = callback_data['label']
         payment_id = callback_data['payment_id']
         server_id = callback_data['server']
+        check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
+        api_key = await db.get_server_key(int(server_id))
+
 
         paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment_id)
         if paymentstatus == True:
             check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
             accessUrl = check_outline_key[1]
+            outline_key_id = check_outline_key[0]
+            
             if check_outline_key[0] == None:
                 api_key = await db.get_server_key(int(server_id))
                 data = await outline.create_key(api_key)
@@ -458,11 +478,18 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
                                                            key_accessUrl)
                 print(f"\n Data: \n: {data} , {updatekey}")
                 accessUrl = key_accessUrl
+                outline_key_id = key_id
                 await bot.send_message(callback_query.from_user.id,
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
                 await bot.send_message(callback_query.from_user.id,
                                     f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
                 await callback_query.answer()
+            
+            # ОБНОВИТЬ EXPIRATION_AT у ключа
+            expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
+            await db.update_key_expiration(outline_key_id, label, expiration_at)
+            await outline.remove_data_limit(api_key, outline_key_id)
+
             await bot.send_message(callback_query.from_user.id,
                                 f'Ключ успешно оплачен!')
         elif paymentstatus == False:

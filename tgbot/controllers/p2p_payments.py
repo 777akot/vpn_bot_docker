@@ -5,6 +5,9 @@
 
 import math
 
+from datetime import datetime, timedelta
+import pytz
+
 import urllib
 from loader import bot, db, yooclient, quickpay
 from yoomoney import Client, Quickpay
@@ -187,6 +190,25 @@ async def check_payment(user_id, label, payment_id=None):
         #                        MESSAGES['successful_payment'])
 
     return True
+
+async def delete_unused_payments():
+    try:
+        current_date = datetime.now(pytz.utc)
+        payments = await db.get_all_payments_data()
+        
+        for x in payments:
+            days_live = (current_date - x["created_at"]).days
+            payment_label = x["label"]
+            payment_user_id = x["user_id"]
+            payment_sum = x['sum']
+            payment_sum_paid = x['sum_paid']
+            if days_live > 0 and payment_sum_paid == False and payment_sum > 0:
+                print(f"PAYMENT to delete: {x}")
+                await db.delete_payment_by_label(payment_user_id, payment_label)
+                
+
+    except Exception as e:
+        print(f"ERROR: {e}")
 
 async def check_trial_payment(user_id, label):
     key_data = await db.get_payment_status(user_id, label)
