@@ -220,7 +220,8 @@ async def admin_set_trial_sum(message: Message):
             if len(key_exist) == 0:
                 print(f'KEY NOT EXIST: {key_exist}')
                 await db.delete_payment_by_label(user_id, label)
-                await dp.bot.send_message(message.from_user.id, f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
+                print(f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
+                # await dp.bot.send_message(message.from_user.id, f'KEY NOT EXIST. AND PAYMENT DELETED: {label}')
 
             else:
                 key_item = key_exist[0]
@@ -228,7 +229,8 @@ async def admin_set_trial_sum(message: Message):
                 api_key = await db.get_server_key(int(server_id))
                 key_id = key_item['outline_key_id']
                 await outline.set_name_label(api_key, key_id, label)
-                await dp.bot.send_message(message.from_user.id, f'KEY EXIST')
+                print(f'KEY EXIST')
+                # await dp.bot.send_message(message.from_user.id, f'KEY EXIST')
 
             if status:
                 await dp.bot.send_message(message.from_user.id, f'L: {label}. S: {status}')
@@ -241,7 +243,8 @@ async def admin_set_trial_sum(message: Message):
                     if payment_sum > 0 and status is None:
                         await db.update_payment_trial(user_id, label)
                         print(f"\n Payment status: {p['sum']}")
-                        await dp.bot.send_message(message.from_user.id, f'P: {p["sum"]} Paid: {payment_sum_paid==True} L: {label}')
+                        print(f'P: {p["sum"]} Paid: {payment_sum_paid==True} L: {label}')
+                        # await dp.bot.send_message(message.from_user.id, f'P: {p["sum"]} Paid: {payment_sum_paid==True} L: {label}')
                     
     except Exception as e:
         print(f"ERROR: admin_set_trial_sum '{e}'")
