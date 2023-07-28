@@ -173,7 +173,7 @@ def keyboard_admin_action():
 def keyboard_partner_action():
     keyboard = InlineKeyboardMarkup(row_width=2,resize_keyboard=True)
     btn_add_account = InlineKeyboardButton(f'Привязать Yoomoney', callback_data='add_account')
-    btn_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data=f"cancel")
+    btn_users = InlineKeyboardButton(f'Отобразить пользователей', callback_data='show_partner_referals')
     keyboard.add(btn_add_account, btn_users)
     return keyboard
 

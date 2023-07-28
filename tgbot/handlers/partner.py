@@ -118,6 +118,33 @@ async def partner_submit(message: Message):
                                   reply_markup=keyboard_admin_partner_submit(message.from_user.id))
     await dp.bot.send_message(message.from_user.id, f'Ваша заявка принята на рассмотрение. Дожитесь уведомления о результате')
 
+async def show_partner_referals(message: Message):
+    try:
+        ispartner = await check_partner(message.from_user.id)
+        if not ispartner:
+            await dp.bot.send_message(message.from_user.id, f'По поводу партнерства обратитесь к администратору')
+        else:
+            referals = await db.get_referal_users_data(message.from_user.id)
+            referals_array = []
+
+            def show_emoji(value):
+                if value == True:
+                    return "✔️"
+                else:
+                    if value == False:
+                        return "❌"
+
+            for x in referals:
+                referals_array.append(f"{x['user_id']} {x['user_name']} TRIAL: {show_emoji(x['trial_used'])} ОПЛАТА: {show_emoji(x['bought'])}")
+            
+            text = "\n".join(map(str, referals_array))
+            print("show_partner_referals")
+            await dp.bot.send_message(message.from_user.id, text)
+
+
+    except Exception as e:
+        print(f"ERROR: {e}")
+
 def register_partner(dispatcher: Dispatcher):
     dispatcher.register_message_handler(partner_start, commands=["partner"], chat_type=ChatType.PRIVATE)
     dispatcher.register_callback_query_handler(partner_add_account, lambda c: c.data and c.data == 'add_account',
@@ -125,3 +152,6 @@ def register_partner(dispatcher: Dispatcher):
     dispatcher.register_message_handler(save_partner, chat_type=ChatType.PRIVATE, state=AddPartnerState.account)
     dispatcher.register_callback_query_handler(partner_submit, lambda c: c.data and c.data == 'partner_join',
                                                chat_type=ChatType.PRIVATE)
+    dispatcher.register_callback_query_handler(show_partner_referals, lambda c: c.data and c.data == 'show_partner_referals',
+                                               chat_type=ChatType.PRIVATE)
+    
