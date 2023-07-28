@@ -77,28 +77,39 @@ async def partner_add_account(message: Message, state: FSMContext):
     if not ispartner:
         await dp.bot.send_message(message.from_user.id, f'По поводу партнерства обратитесь к администратору')
     else:
+        user_data = await db.get_user_by_id(message.from_user.id)
+        print(f"\n User_data: {user_data} \n")
+        user_account = user_data[0]['user_account']
         await state.set_state(AddPartnerState.account)
-        await dp.bot.send_message(message.from_user.id, f'Введите 16-ти значный номер аккаунта Yoo:',
-                                reply_markup=keyboard_cancel())
+        await dp.bot.send_message(message.from_user.id, (
+                                                        f'Сейчас привязан: {user_account} \n'
+                                                        f'Введите 16-ти значный номер аккаунта Yoo:\n'
+                                                        ),
+                                                        reply_markup=keyboard_cancel())
 
 async def save_partner(message: Message, state: FSMContext):
-    ispartner = await check_partner(message.from_user.id)
-    if not ispartner:
-        await dp.bot.send_message(message.from_user.id, f'По поводу партнерства обратитесь к администратору')
-    else:
-        account = message.text.strip()
-        if not account.isdigit():
-            await dp.bot.send_message(message.from_user.id, 'Не похоже на номер аккаунта')
-        if not (len(str(account)) == 16 or len(str(account)) >= 14):
-            await dp.bot.send_message(message.from_user.id, 'Введите 16-ти значный номер аккаунта Yoo')
+    try:
+        ispartner = await check_partner(message.from_user.id)
+        if not ispartner:
+            await dp.bot.send_message(message.from_user.id, f'По поводу партнерства обратитесь к администратору')
         else:
-            res = ""
+            account = message.text.strip()
+            if not account.isdigit():
+                await dp.bot.send_message(message.from_user.id, 'Не похоже на номер аккаунта')
+                return
+
+            if not (len(str(account)) >= 11):
+                await dp.bot.send_message(message.from_user.id, 'Введите валидный номер аккаунта Yoo (мин 11 цифр)')
+                return
             # state_data = await state.get_data()
             # server_name = state_data['account_number']
+
             await state.update_data(account=account)
             await db.add_account(message.from_user.id, account)
             await dp.bot.send_message(message.from_user.id, f'Вы успешно добавили кошелек {account} !')
             await state.finish()
+    except Exception as e:
+        print("ERROR: {e}")
 
 async def partner_submit(message: Message):
     
