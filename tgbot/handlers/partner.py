@@ -125,6 +125,7 @@ async def show_partner_referals(message: Message):
             await dp.bot.send_message(message.from_user.id, f'По поводу партнерства обратитесь к администратору')
         else:
             referals = await db.get_referal_users_data(message.from_user.id)
+            sliced_referals = referals[:50]
             referals_array = []
 
             def show_emoji(value):
@@ -134,12 +135,13 @@ async def show_partner_referals(message: Message):
                     if value == False:
                         return "❌"
 
-            for x in referals:
+            for x in sliced_referals:
                 referals_array.append(f"{x['user_id']} {x['user_name']} TRIAL: {show_emoji(x['trial_used'])} ОПЛАТА: {show_emoji(x['bought'])}")
             
             text = "\n".join(map(str, referals_array))
+            
             print("show_partner_referals")
-            await dp.bot.send_message(message.from_user.id, text)
+            await dp.bot.send_message(message.from_user.id, f"Последние 50 пользователей:\n {text}")
 
 
     except Exception as e:

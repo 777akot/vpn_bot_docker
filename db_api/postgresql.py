@@ -241,7 +241,7 @@ class Database:
         return await self.execute(sql, user_id, fetch=True)
     
     async def get_referal_users_data(self, user_id):
-        sql = "SELECT * FROM vpn_users WHERE referer_id=($1)"
+        sql = "SELECT * FROM vpn_users WHERE referer_id=($1) ORDER BY created_at DESC"
         return await self.execute(sql, user_id, fetch=True)
     
     async def check_referal(self, user_id, referal_role):
