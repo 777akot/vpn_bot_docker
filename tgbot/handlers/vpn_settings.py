@@ -130,7 +130,8 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
 
         await bot.send_message(callback_query.from_user.id,
                                     f'Вы выбрали сервер <b>{server_name}</b> \n'
-                                    f'Стоимость ежемесячной подписки <b>{price} RUB</b> \n \n' 
+                                    f'Стоимость ежемесячной подписки <b>{price} RUB</b> (со скидкой 50%)\n \n'
+                                    f'Скидка 50% действует до 1 сентября 2023. С 1 сентября : 200р.\n\n' 
                                     f'После проведения оплаты необходимо нажать кнопку <b>Получить ключ</b> \n'
                                     f'{"Или воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку." if trial_used != True else ""}'
                                     f'\n\n'
