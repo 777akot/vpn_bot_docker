@@ -1,10 +1,11 @@
 from typing import Dict
 
 import aiohttp.client_exceptions
-from aiogram import Dispatcher
+from aiogram import Dispatcher, types
 from aiogram.types import Message, CallbackQuery, ChatType
 from aiohttp import ClientConnectorError
 
+import re
 import uuid
 import string
 import random
@@ -15,9 +16,24 @@ from datetime import datetime, timedelta
 import pytz
 from dateutil.relativedelta import relativedelta
 
-from loader import db, bot, outline, quickpay, key_config, referer_config, admin_ids
-from tgbot.keyboards.callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, trial_callback, vpn_keys_callback, vpn_prolong_callback
-from tgbot.keyboards.inline import keyboard_servers_list, keyboard_p2p_payment, keyboard_keys_actions, keyboard_cancel, keyboard_prolong_payment
+from loader import dp, db, bot, outline, quickpay, key_config, referer_config, admin_ids
+from tgbot.keyboards.callback_data_factory import (
+    vpn_callback, 
+    vpn_p2p_callback, 
+    vpn_p2p_claim_callback, 
+    trial_callback, 
+    vpn_keys_callback, 
+    vpn_prolong_callback,
+    vpn_p2p_period_callback
+    )
+from tgbot.keyboards.inline import (
+    keyboard_servers_list, 
+    keyboard_p2p_payment, 
+    keyboard_keys_actions, 
+    keyboard_cancel, 
+    keyboard_prolong_payment, 
+    keyboard_show_periods
+    )
 
 from tgbot.controllers import key_controller
 from tgbot.controllers import p2p_payments
@@ -40,7 +56,7 @@ async def vpn_p2p_callback_handler(callback_query: CallbackQuery):
     # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
-                           reply_markup=await keyboard_servers_list('new_p2p_key'))
+                           reply_markup=await keyboard_servers_list('select_period')) #new_p2p_key
 
 async def generate_outline_link_with_servername(link, server_id):
     server_data = await db.get_server_by_id(server_id)
@@ -48,100 +64,121 @@ async def generate_outline_link_with_servername(link, server_id):
     server_name_url = f"#{quote(server_data[0][0][1])}"
     return f"{link}{server_name_url}"
 
-async def get_new_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
-    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
-    
-    try:
-        data = await outline.create_key(await db.get_server_key(int(callback_data['server'])))
-        await bot.send_message(callback_query.from_user.id,
-                               f'Вставьте вашу ссылку доступа в приложение Outline:')
-        await bot.send_message(callback_query.from_user.id,
-                               f'<code>{await generate_outline_link_with_servername(data["accessUrl"], int(callback_data["server"]))}</code>')
-        await callback_query.answer()
-    except ClientConnectorError:
-        await bot.send_message(callback_query.from_user.id,
-                               f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
-    except aiohttp.client_exceptions:
-        await bot.send_message(callback_query.from_user.id,
-                               f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
 
 async def generate_label():
-
     labels = await db.get_all_labels()
     while True:
-
         label = ''.join(random.sample(string.ascii_lowercase + string.digits, 10))
         label_exists = any(x['label'] == label for x in labels)
         if not label_exists:
             return label
             
 
+async def generate_expiration(period):
+    try:
+        if period is None:
+            raise Exception('Invalid period')
+        
+        quantity = int(period[:-1])
+        unit = period[-1]
+
+        if unit == 'w':
+            return datetime.now() + timedelta(weeks=quantity)
+        elif unit == 'm':
+            return datetime.now() + relativedelta(months=quantity)
+        else:
+            raise Exception('Invalid unit in period')
+    except Exception as e:
+        print(f"ERROR: generate_expiration: {e}")
+        return None
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     try:
+        from .vpn_settings import get_trial
         # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
         await callback_query.answer()
-
-        key_controller.new_key()
-        server_id = callback_data['server']
+        
+        period = callback_data.get('period')
+        if period is None:
+            raise Exception('No period')
+        period_quantity = int(period[:-1])
+        expiration_at = await generate_expiration(period)
+        
+        if expiration_at is None:
+            raise Exception('Invalid expiration')
+          
+        selected_price = int(callback_data.get('price')) if callback_data.get('price') is not None else None
+        if selected_price is None:
+            raise Exception('No price')
+        
+        server_id = callback_data.get('server')
         server = await db.get_server_by_id(int(server_id))
         server_name = server[0][0][1]
-        price = server[0][0][2]
-
-        owner_id = callback_query.from_user.id
-        
+        server_price = server[0][0][2]
+     
         label = await generate_label()
-        expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
 
-        user_data = await db.get_user_by_id(owner_id)
-
+        print(f"\n Expiration_at: {expiration_at}\n Price: {selected_price}")
+        
+        user_id = callback_query.from_user.id
+        user_data = await db.get_user_by_id(user_id)
         print(f'\n USER DATA: {user_data}')
-        # print(f'\n USER DATA . : {user_data[0].user_name}')
-        print(f'\n USER DATA [] : {user_data[0]["user_name"]}')
+        print(f'\n USER NAME: {user_data[0]["user_name"]}')
 
-        trial_used = user_data[0]['trial_used']
         referer_id = int(user_data[0]["referer_id"]) if user_data[0].get("referer_id") else None
         referer_payout = None
         
-        if referer_id != None:
+        if referer_id is not None:
             print(f'\n REFERER EXIST: {referer_id}')
             referer_payout = int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None
             
-
         print(f'\n REFERER : {referer_id}, {referer_payout} \n')
 
-        new_payment = await db.add_payment(label, owner_id, referer_id, price, referer_payout)
-
-        print(f"\n NEW PAYMENT: {new_payment}")
-
         # return
+        
         #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
-        quickpay = await p2p_payments.create_payment(label,price)
+        new_payment = await db.add_payment(label, user_id, referer_id, selected_price, referer_payout)
+        # print(f"\n NEW PAYMENT: {new_payment}")
 
-        print(
-            f"\n KEY DATA: \n",
-            f"owner_id: {owner_id} \n",
-            f"label: {label} \n",
-            f"expiration_at: {expiration_at} \n"
+        #СОЗДАЕТСЯ КЛЮЧ
+        await db.add_key(user_id,label,expiration_at,int(server_id))
+
+        if selected_price == 0:
+            # ЕСЛИ БЕСПЛАТНО НЕ ГЕНЕРИМ YOOMONEY И ПЕРЕХОДИМ СРАЗУ В GET_TRIAL
+            # Имитируем обработку callback_query события
+            data = {'action_type':'trial', 'server':server_id, 'label':label}
+            await get_trial(callback_query, data)
+            return
+        else:
+        
+            #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
+            quickpay = await p2p_payments.create_payment(label,selected_price)
+
+            print(
+                f"\n KEY DATA: \n",
+                f"owner_id: {user_id} \n",
+                f"label: {label} \n",
+                f"expiration_at: {expiration_at} \n"
+                )
+
+            text = (
+                f'Вы выбрали сервер <b>{server_name}</b> \n'
+                ) + (
+                f'Сроком (месяцев): <b>{period_quantity}</b> \n'
+                f'Стоимость: <b>{selected_price} RUB</b>\n' if period_quantity > 1 else ''
+                ) + (
+                f'Стоимость ежемесячной подписки <b>{selected_price} RUB</b>\n \n' if period_quantity == 1 else ''
+                ) + (
+                f'После проведения оплаты необходимо нажать кнопку <b>"Получить ключ!"</b> \n'
             )
-        # ttl = key_config.get('ttl')
 
-        await db.add_key(owner_id,label,expiration_at,int(server_id))
-
-        await bot.send_message(callback_query.from_user.id,
-                                    f'Вы выбрали сервер <b>{server_name}</b> \n'
-                                    f'Стоимость ежемесячной подписки <b>{price} RUB (со скидкой 50%)</b>\n \n'
-                                    f'Скидка 50% действует до 1 сентября 2023. С 1 сентября : 200р.\n\n' 
-                                    f'После проведения оплаты необходимо нажать кнопку <b>Получить ключ</b> \n'
-                                    f'{"Или воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку." if trial_used != True else ""}'
-                                    f'\n\n'
-                                    ,
-                                    reply_markup=await keyboard_p2p_payment(
-                                                                            quickpay.redirected_url,
-                                                                            label,
-                                                                            owner_id,
-                                                                            server_id                                                                        
-                                                                            ))
+            await bot.send_message(callback_query.from_user.id, text,
+                                        reply_markup=await keyboard_p2p_payment(
+                                                                                quickpay.redirected_url,
+                                                                                label,
+                                                                                user_id,
+                                                                                server_id                                                                        
+                                                                                ))
     except Exception as e:
         print(f"ERROR: {e}")
         await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
@@ -194,9 +231,14 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
 
 async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     
+    
+    
     label = callback_data['label']
     server_id = callback_data['server']
+    user_id = callback_query.from_user.id
 
+    print(f"\n GET TRIAL CALLBACK U:{user_id} \n C:{callback_data}\n\n")
+    # return
     paymentstatus = await p2p_payments.check_trial_payment(callback_query.from_user.id, label)
     check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
 
@@ -241,7 +283,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
     # print(f"\n GET TRIAL RESULT: {result}\n")
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
-    
+    await callback_query.answer()
     # async def test_func():
     #     print(f"\n ДЕЙСТВИЕ ВЫПОЛНЕНО!!!!! \n")
     #     await bot.send_message(callback_query.from_user.user_id, "Выполнено")
@@ -292,7 +334,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
             print(f"ERROR: {e}")
     else:
         accessUrl = None
-    await callback_query.answer()
+    
     text = (
         f"Ключ не оплачен \n\n"
         f"Сервер: {server_name}\n"
@@ -500,12 +542,57 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
     except Exception as e:
         print(f"ERROR: {e}")
 
+async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, str]):
+    try:
+        await callback_query.answer()
+        data = callback_data
+        server_id = data['server']
+        server = await db.get_server_by_id(int(server_id))
+        server_name = server[0][0][1]
+        price = server[0][0][2]
+
+        special = await p2p_payments.check_special_price()
+
+        if special is not None:
+            special_price = special.get('special_price')
+            special_days_to_go = special.get('special_days_to_go')
+        else:
+            special_price, special_days_to_go = None, None
+
+        price_year = special_price if special else price*10
+
+        user_id = callback_query.from_user.id
+        trial_used = await db.check_trial(user_id)
+
+        print(f"\n trial_used: {trial_used}")
+
+        prices = [price, price * 3, price_year]
+        print(f"\n DATA: {data} \n")
+        text = (
+            f"Вы выбрали сервер: <b>{server_name}</b>\n\n"
+            f"Цена/месяц: <b>{price} RUB (со скидкой 50%*)</b>\n"
+            f"* Скидка действует до 1 сентября. С 1 сентября стоимость станет 200р \n"
+            ) + (
+            f"\n<b>Внимание Акция! Оставшиеся дни: {special_days_to_go}. \n{special_price} за годовую подписку! ({math.ceil((special_price/12)*10)/10} в месяц!)</b> \n"
+            if special else ""
+            ) + (
+            f"\nИли воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку.\n"
+            if trial_used == False else ""
+            ) + (
+            f"\n<b>Выберите период:</b>\n"
+            )
+        
+        await bot.send_message(callback_query.from_user.id,text, reply_markup=await keyboard_show_periods(server_id, prices, trial_used))
+    except Exception as e:
+        print(f"ERROR: {e}")
 
 def register_vpn_handlers(dp: Dispatcher):
     dp.register_message_handler(vpn_handler, commands=["vpn"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(vpn_callback_handler, vpn_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(vpn_p2p_callback_handler, vpn_p2p_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
-    # dp.register_callback_query_handler(get_new_key, vpn_callback.filter(action_type='new_key'), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(select_period, vpn_callback.filter(action_type='select_period'), chat_type=ChatType.PRIVATE)
+    dp.register_callback_query_handler(get_new_p2p_key, vpn_p2p_period_callback.filter(action_type='new_p2p_key'), chat_type=ChatType.PRIVATE)
+
     dp.register_callback_query_handler(get_new_p2p_key, vpn_callback.filter(action_type='new_p2p_key'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_claimed_key, vpn_p2p_claim_callback.filter(action_type='p2p_claim'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_trial, trial_callback.filter(action_type='trial'), chat_type=ChatType.PRIVATE)

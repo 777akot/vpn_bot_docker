@@ -14,6 +14,33 @@ from yoomoney import Client, Quickpay
 
 import aiohttp
 
+async def get_price(request):
+    try:
+
+        return
+    except Exception as e:
+        print(f"ERROR: {e}")
+
+async def check_special_price():
+    try:
+        special_expiration_at = datetime(2023, 8, 1)
+        special_days_to_go = (special_expiration_at - datetime.now()).days
+
+        special = False
+
+        if special == True:
+            special_price = 700
+            return {
+                    "special_price": special_price, 
+                    "special_expiration_at": special_expiration_at, 
+                    "special_days_to_go": special_days_to_go
+                    }
+        else:
+            return None
+        
+    except Exception as e:
+        print(f"ERROR: check_special: {e}")
+
 async def make_post_request(url, data, headers):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, data=data, headers=headers) as response:
@@ -139,6 +166,24 @@ async def check_yoomoney(label):
     
     if operation is not None:
         print(f"\n OPERATION: {operation.status}")
+        
+        return operation.status
+    else:
+        return None
+
+async def admin_check_yoomoney(label):
+    client = Client(yooclient['token'])
+    history = client.operation_history(from_date=datetime.now())
+    operation = history.operations[-1] if len(history.operations) > 0 else None
+    
+    print(f"\n OPERATION: {history.operations}")
+    if len(history.operations):
+        for x in history.operations:
+            print(f'{x.label} : {x.datetime}')
+
+    if operation is not None:
+        print(f"\n OPERATION: {operation.status}")
+        
         return operation.status
     else:
         return None

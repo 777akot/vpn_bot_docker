@@ -120,6 +120,16 @@ class Database:
               "UNIQUE (id))"
         return await self.execute(sql, execute=True)
 
+    # async def create_specials_table(self):
+    #     sql = "CREATE TABLE IF NOT EXISTS vpn_specials (" \
+    #           "id bigserial PRIMARY KEY, " \
+    #           "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()," \
+    #           "expiration_at TIMESTAMPTZ NOT NULL," \
+    #           "UNIQUE (id))"
+              
+
+    #     return await self.execute(sql, execute=True)
+    
     # SERVERS #
 
     async def get_servers(self):
@@ -298,3 +308,5 @@ class Database:
     async def delete_payment_by_label(self, user_id, label):
         sql = "DELETE FROM vpn_payments WHERE user_id=$1 AND label=$2"
         return await self.execute(sql, user_id, label, execute=True)
+    
+    # SPECIALS

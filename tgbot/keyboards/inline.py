@@ -2,8 +2,10 @@ import logging
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, User
 
+import math
+
 from loader import db, dp
-from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback, vpn_prolong_callback
+from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback, vpn_prolong_callback, vpn_p2p_period_callback
 
 from tgbot.controllers import key_controller
 
@@ -52,14 +54,10 @@ async def keyboard_prolong_payment(quickpay_url: str, label: str, server: str, p
 
 async def keyboard_p2p_payment(quickpay_url: str, label: str, user_id: str, server: str):
     keyboard = InlineKeyboardMarkup()
-    trial_used = await db.check_trial(user_id)
-    print(f"\n TRIAL: {trial_used}")
-    inline_btn_0 = InlineKeyboardButton(f'Тестовый период', callback_data=trial_callback.new(action_type="trial", server=server, label=label))
+    
     inline_btn_1 = InlineKeyboardButton(f'Перейти к оплате!', url=quickpay_url)
     inline_btn_2 = InlineKeyboardButton(f'Получить ключ!', callback_data=vpn_p2p_claim_callback.new(action_type='p2p_claim', server=server, label=label))
 
-    if trial_used != True:
-        keyboard.add(inline_btn_0)
     keyboard.add(inline_btn_1)
     keyboard.add(inline_btn_2)
     return keyboard
@@ -139,6 +137,38 @@ async def get_nickname(user_id):
         if nickname:
             return nickname
     return None
+
+async def keyboard_show_periods(server_id, prices, trial_used):
+    try:
+        keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
+        
+        print(f"\n TRIAL: {trial_used}")
+        btn0 = InlineKeyboardButton(f'1 неделя - Бесплатный тестовый период', 
+                                            callback_data=vpn_p2p_period_callback.new(
+                                                                action_type="new_p2p_key",
+                                                                server=server_id, period="1w", 
+                                                                price=0))
+        
+        btn1 = InlineKeyboardButton(f'1 Месяц - {prices[0]} RUB', 
+                                            callback_data=vpn_p2p_period_callback.new(
+                                                                action_type="new_p2p_key",
+                                                                server=server_id,
+                                                                period="1m",
+                                                                price=prices[0]))
+        # btn2 = (InlineKeyboardButton(f'3 Месяца - {prices[1]}', callback_data=vpn_p2p_period_callback.new(action_type="",server=server_id, period=3)))
+        btn3 = InlineKeyboardButton(f'1 Год - {prices[2]} ({math.ceil((prices[2]/12)*10)/10} RUB в месяц)',
+                                            callback_data=vpn_p2p_period_callback.new(
+                                                                action_type="new_p2p_key",
+                                                                server=server_id,
+                                                                period="12m",
+                                                                price=prices[2]))
+        
+        if trial_used != True:
+            keyboard.add(btn0)
+        keyboard.add(btn1, btn3)
+        return keyboard
+    except Exception as e:
+        print(f"ERROR: keyboard_show_periods: {e}")
 
 async def keyboard_show_users(users_chunk):
     try: 

@@ -12,7 +12,7 @@ from tgbot.states.servers_add import AddServerState
 from tgbot.states.partners_add import AddPartnerState
 from tgbot.states.notification_add import AddNotificationState
 
-from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment, check_yoomoney
+from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment, check_yoomoney, admin_check_yoomoney
 from tgbot.controllers import key_controller, p2p_payments, notifications_controller
 
 async def admin_start(message: Message):
@@ -267,6 +267,13 @@ async def admin_notification_expired(message):
     except Exception as e:
         print(f"ERROR: admin_notification_expired {e}")
 
+async def admin_checkyoo(message: Message):
+    await message.answer("admin_checkyoo")
+    label = 'jaq87wxfzm'
+    await admin_check_yoomoney(label)
+
+
+
 def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_notification_expired, commands=["admin_notification_expired"], chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_disable_expired, commands=["admin_disable_expired"], chat_type=ChatType.PRIVATE, is_admin=True)
@@ -295,5 +302,7 @@ def register_admin(dispatcher: Dispatcher):
 
     dispatcher.register_callback_query_handler(admin_send_notification, admin_send_notification_callback.filter(action_type='send_notification'), chat_type=ChatType.PRIVATE, is_admin=True)
     dispatcher.register_message_handler(admin_send_notification_send, chat_type=ChatType.PRIVATE, state=AddNotificationState.message_text)
+
+    dispatcher.register_message_handler(admin_checkyoo, commands=["admin_checkyoo"], chat_type=ChatType.PRIVATE, is_admin=True)
     
 
