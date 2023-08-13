@@ -1,6 +1,7 @@
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram import types
 from aiogram.utils.exceptions import BadRequest
+from aiogram.dispatcher.handler import CancelHandler
 
 class SubscriptionMiddleware(BaseMiddleware):
     async def on_pre_process_message(self, message: types.Message, data: dict):
@@ -14,4 +15,4 @@ class SubscriptionMiddleware(BaseMiddleware):
                 raise BadRequest("User is not subscribed to the channel.")
         except BadRequest:
             await message.answer(f"Пожалуйста, подпишитесь на канал {channel_id}, чтобы взаимодействовать с ботом")
-            raise StopPropagation()
+            raise CancelHandler()
