@@ -238,6 +238,7 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
         if trial_used == True:
             await bot.send_message(callback_query.from_user.id,
                                     f'Бесплатный период уже использован...')
+            return
 
         print(f"\n GET TRIAL CALLBACK U:{user_id} \n C:{callback_data}\n\n")
         # return
