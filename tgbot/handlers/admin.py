@@ -112,10 +112,11 @@ async def admin_show_users(callback_query: CallbackQuery):
     try:
         users = await db.show_users()
         chunk_size = 50
-        for i in range(0, len(users), chunk_size):
-            users_chunk = users[i:i + chunk_size]
-            await dp.bot.send_message(callback_query.from_user.id, f'Пользователи: {len(users)}',
-                                reply_markup=await keyboard_show_users(users_chunk))
+        # for i in range(0, len(users), chunk_size):
+        # for i in range(0, chunk_size):
+        users_chunk = users[:50]
+        await dp.bot.send_message(callback_query.from_user.id, f'Пользователи: {len(users)}',
+                            reply_markup=await keyboard_show_users(users_chunk))
     except Exception as e:
         print(f"ERROR: {e}")
     
