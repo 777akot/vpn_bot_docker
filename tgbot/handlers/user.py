@@ -34,12 +34,12 @@ async def clear_screen(message):
 async def p2p_start(message: Message):
 
     is_admin = False
-
+    
 
     if message.chat.id in admin_ids:
         is_admin = True
     # await clear_screen(message)
-    print("START")
+   
     referer_id = extract_referer_id(message.text)
     ref = referer_id
     if referer_id is not None:

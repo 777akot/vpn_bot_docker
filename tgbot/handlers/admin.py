@@ -272,7 +272,18 @@ async def admin_checkyoo(message: Message):
     label = 'jaq87wxfzm'
     await admin_check_yoomoney(label)
 
+async def admin_delete_messages(message: Message):
+    await message.answer("admin_delete_messages")
+    chat_id = message.chat.id
+    message_id = message.message_id
 
+    chat = await dp.bot.get_chat(chat_id)
+    # messages = await dp.bot.get_chat_history(chat_id=chat_id)
+
+    print(f"CHAT: {chat}")
+    # for m in messages:
+    #     dp.bot.delete_message(chat_id, m.message_id)
+    # await dp.bot.delete_message(chat_id, message_id)
 
 def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_notification_expired, commands=["admin_notification_expired"], chat_type=ChatType.PRIVATE, is_admin=True)
@@ -304,5 +315,6 @@ def register_admin(dispatcher: Dispatcher):
     dispatcher.register_message_handler(admin_send_notification_send, chat_type=ChatType.PRIVATE, state=AddNotificationState.message_text)
 
     dispatcher.register_message_handler(admin_checkyoo, commands=["admin_checkyoo"], chat_type=ChatType.PRIVATE, is_admin=True)
+    dispatcher.register_message_handler(admin_delete_messages, commands=["admin_delete_messages"], chat_type=ChatType.PRIVATE, is_admin=True)
     
 

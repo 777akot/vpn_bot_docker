@@ -46,15 +46,9 @@ async def vpn_handler(message: Message):
     await bot.send_message(message.from_user.id, f'Выберите страну сервера', reply_markup=await keyboard_servers_list('new_key'))
 
 
-async def vpn_callback_handler(callback_query: CallbackQuery):
-    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
-    await callback_query.answer()
-    await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
-                           reply_markup=await keyboard_servers_list('new_key'))
-
 async def vpn_p2p_callback_handler(callback_query: CallbackQuery):
-    # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
     await callback_query.answer()
+    
     await bot.send_message(callback_query.from_user.id, f'Выберите страну сервера',
                            reply_markup=await keyboard_servers_list('select_period')) #new_p2p_key
 
@@ -94,9 +88,10 @@ async def generate_expiration(period):
 
 async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     try:
+        await callback_query.answer()
+
         from .vpn_settings import get_trial
         # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
-        await callback_query.answer()
         
         period = callback_data.get('period')
         if period is None:
@@ -184,7 +179,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
         await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
 
 async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str, str]):
-    await callback_query.answer()
+
     label = callback_data['label']
     server_id = callback_data['server']
     print("\n SERVER \n: ", callback_data['server'])
@@ -218,7 +213,6 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
                                 f'Вставьте вашу ссылку доступа в приложение Outline:')
             await bot.send_message(callback_query.from_user.id,
                                 f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
-            await callback_query.answer()
         except ClientConnectorError:
             await bot.send_message(callback_query.from_user.id,
                                 f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
@@ -228,58 +222,61 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
     else:
         await bot.send_message(callback_query.from_user.id,
                                 f'Оплата ещё не прошла. Попробуйте позже...')
+    await callback_query.answer()
 
 async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]):
-    
-    
-    
-    label = callback_data['label']
-    server_id = callback_data['server']
-    user_id = callback_query.from_user.id
+    try:
+        # await dp.bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+        await callback_query.answer()
+        
+        
+        label = callback_data['label']
+        server_id = callback_data['server']
+        user_id = callback_query.from_user.id
 
-    print(f"\n GET TRIAL CALLBACK U:{user_id} \n C:{callback_data}\n\n")
-    # return
-    paymentstatus = await p2p_payments.check_trial_payment(callback_query.from_user.id, label)
-    check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
+        print(f"\n GET TRIAL CALLBACK U:{user_id} \n C:{callback_data}\n\n")
+        # return
+        paymentstatus = await p2p_payments.check_trial_payment(callback_query.from_user.id, label)
+        check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
 
-    if paymentstatus == True:
-        try:
-            accessUrl = check_outline_key[1]
-            if check_outline_key[0] == None:
-                current_date = datetime.now(pytz.utc)
-                new_expiration_at = current_date + timedelta(days=7)
-                api_key = await db.get_server_key(int(server_id))
-                data = await outline.create_key(api_key)
-                key_id = int(data.get('id'))
-                key_accessUrl = data.get('accessUrl')
-                await outline.set_name_label(api_key, key_id, label)
-                updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
-                                                           label, 
-                                                           key_id, 
-                                                           key_accessUrl)
-                await db.update_key_expiration(key_id, label, new_expiration_at)
-                print(f"\n Data: \n: {data} , {updatekey}")
-                accessUrl = key_accessUrl
+        if paymentstatus == True:
+            try:
+                accessUrl = check_outline_key[1]
+                if check_outline_key[0] == None:
+                    current_date = datetime.now(pytz.utc)
+                    new_expiration_at = current_date + timedelta(days=7)
+                    api_key = await db.get_server_key(int(server_id))
+                    data = await outline.create_key(api_key)
+                    key_id = int(data.get('id'))
+                    key_accessUrl = data.get('accessUrl')
+                    await outline.set_name_label(api_key, key_id, label)
+                    updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
+                                                            label, 
+                                                            key_id, 
+                                                            key_accessUrl)
+                    await db.update_key_expiration(key_id, label, new_expiration_at)
+                    print(f"\n Data: \n: {data} , {updatekey}")
+                    accessUrl = key_accessUrl
 
-            # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
-            result = await db.set_trial_used(callback_query.from_user.id, True)
+                # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
+                result = await db.set_trial_used(callback_query.from_user.id, True)
 
+                await bot.send_message(callback_query.from_user.id,
+                                    f'Вставьте вашу ссылку доступа в приложение Outline:')
+                await bot.send_message(callback_query.from_user.id,
+                                    f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
+            except ClientConnectorError:
+                await bot.send_message(callback_query.from_user.id,
+                                    f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
+            except aiohttp.client_exceptions.ClientError:
+                await bot.send_message(callback_query.from_user.id,
+                                    f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
+        else:
             await bot.send_message(callback_query.from_user.id,
-                                f'Вставьте вашу ссылку доступа в приложение Outline:')
-            await bot.send_message(callback_query.from_user.id,
-                                f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
-            await callback_query.answer()
-        except ClientConnectorError:
-            await bot.send_message(callback_query.from_user.id,
-                                f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
-        except aiohttp.client_exceptions.ClientError:
-            await bot.send_message(callback_query.from_user.id,
-                                f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
-    else:
-        await bot.send_message(callback_query.from_user.id,
-                                f'Оплата ещё не прошла. Попробуйте позже...')
-    
-    
+                                    f'Оплата ещё не прошла. Попробуйте позже...')
+        
+    except Exception as e:
+        print(f"ERROR: get_trial: {e}")
     # print(f"\n GET TRIAL RESULT: {result}\n")
 
 async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
@@ -544,6 +541,7 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
 
 async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     try:
+        # await dp.bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
         await callback_query.answer()
         data = callback_data
         server_id = data['server']
@@ -588,7 +586,6 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
 
 def register_vpn_handlers(dp: Dispatcher):
     dp.register_message_handler(vpn_handler, commands=["vpn"], chat_type=ChatType.PRIVATE)
-    dp.register_callback_query_handler(vpn_callback_handler, vpn_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(vpn_p2p_callback_handler, vpn_p2p_callback.filter(action_type='vpn_settings'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(select_period, vpn_callback.filter(action_type='select_period'), chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(get_new_p2p_key, vpn_p2p_period_callback.filter(action_type='new_p2p_key'), chat_type=ChatType.PRIVATE)
