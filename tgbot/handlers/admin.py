@@ -12,7 +12,7 @@ from tgbot.states.servers_add import AddServerState
 from tgbot.states.partners_add import AddPartnerState
 from tgbot.states.notification_add import AddNotificationState
 
-from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_payment, check_yoomoney, admin_check_yoomoney
+from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_yoomoney, admin_check_yoomoney
 from tgbot.controllers import key_controller, p2p_payments, notifications_controller
 
 async def admin_start(message: Message):

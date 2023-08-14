@@ -224,7 +224,7 @@ class Database:
         sql = "SELECT (label,bought) FROM vpn_keys WHERE owner_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, fetchval=True)
     
-    async def update_payment_status(self, user_id, label, bought):
+    async def update_key_payment_status(self, user_id, label, bought):
         sql = "UPDATE vpn_keys SET bought=($3), active=($3) WHERE owner_id=($1) AND label=($2)"
         return await self.execute(sql, user_id, label, bought, execute=True)
     
@@ -285,28 +285,43 @@ class Database:
         sql = "SELECT * FROM vpn_payments WHERE label=$1 AND user_id=$2 ORDER BY created_at DESC"
         return await self.execute(sql, label, user_id, fetch=True)
     
-    async def get_payment_by_payment_id(self, user_id, label, payment_id):
-        sql = "SELECT * FROM vpn_payments WHERE label=$2 AND user_id=$1 AND id=$3 ORDER BY created_at DESC"
-        return await self.execute(sql, user_id, label, payment_id, fetch=True)
+    async def get_payment_by_payment_id(self, user_id, label, payment_id=None):
+        args = [user_id, label]
+        if payment_id is not None:
+            args.append(payment_id)
+        sql = f"SELECT * FROM vpn_payments WHERE label=$2 AND user_id=$1 {'AND id=$3' if payment_id is not None else ''} ORDER BY created_at DESC"
+        return await self.execute(sql, *args, fetch=True)
 
     async def get_payment_by_referer_id(self, referer_id):
         sql = "SELECT (sum, referer_payout) FROM vpn_payments WHERE referer_id=$1 AND referer_payout_paid='True'"
         return await self.execute(sql, referer_id, fetch=True)
     
-    async def update_payment_status_by_id(self, user_id, label, sum_paid):
-        sql = "UPDATE vpn_payments SET sum_paid=($3) WHERE user_id=($1) AND label=($2)"
-        return await self.execute(sql, user_id, label, sum_paid, execute=True)
+    async def update_payment_status_by_id(self, user_id, label, sum_paid, payment_id=None):
+        args = [user_id, label, sum_paid]
+        if payment_id is not None:
+            args.append(payment_id)
+        sql = f"UPDATE vpn_payments SET sum_paid=($3) WHERE user_id=($1) AND label=($2) {'AND id=$4' if payment_id is not None else ''}"
+        return await self.execute(sql, *args, execute=True)
     
-    async def update_payment_trial(self, user_id, label):
-        sql = "UPDATE vpn_payments SET sum=0, referer_payout=0 WHERE user_id=($1) AND label=($2)"
-        return await self.execute(sql, user_id, label, execute=True)
+    async def update_payment_trial(self, user_id, label, payment_id=None):
+        args = [user_id, label]
+        if payment_id is not None:
+            args.append(payment_id)
+        sql = f"UPDATE vpn_payments SET sum=0, referer_payout=0 WHERE user_id=($1) AND label=($2) {'AND id=$3' if payment_id is not None else ''}"
+        return await self.execute(sql, *args, execute=True)
     
-    async def update_payment_referer_status_by_id(self, user_id, label, referer_payout_paid):
-        sql = "UPDATE vpn_payments SET referer_payout_paid=($3) WHERE user_id=($1) AND label=($2)"
-        return await self.execute(sql, user_id, label, referer_payout_paid, execute=True)
+    async def update_payment_referer_status_by_id(self, user_id, label, referer_payout_paid, payment_id=None):
+        args = [user_id, label, referer_payout_paid]
+        if payment_id is not None:
+            args.append(payment_id)
+        sql = f"UPDATE vpn_payments SET referer_payout_paid=($3) WHERE user_id=($1) AND label=($2) {'AND id=$4' if payment_id is not None else ''}"
+        return await self.execute(sql, *args, execute=True)
 
-    async def delete_payment_by_label(self, user_id, label):
-        sql = "DELETE FROM vpn_payments WHERE user_id=$1 AND label=$2"
-        return await self.execute(sql, user_id, label, execute=True)
+    async def delete_payment_by_label(self, user_id, label, payment_id=None):
+        args = [user_id, label]
+        if payment_id is not None:
+            args.append(payment_id)
+        sql = f"DELETE FROM vpn_payments WHERE user_id=$1 AND label=$2 {'AND id=$3' if payment_id is not None else ''}"
+        return await self.execute(sql, *args, execute=True)
     
     # SPECIALS

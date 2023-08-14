@@ -185,7 +185,8 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
     print("\n SERVER \n: ", callback_data['server'])
 
     # paymentstatus = await db.get_payment_status(callback_query.from_user.id, label)
-    paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label)
+    payment = await db.get_payment_by_id(label, int(callback_query.from_user.id))
+    paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment[0]['id'])
     print("\n Paymentstatus: \n", paymentstatus)
     
     check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
@@ -242,7 +243,8 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
 
         print(f"\n GET TRIAL CALLBACK U:{user_id} \n C:{callback_data}\n\n")
         # return
-        paymentstatus = await p2p_payments.check_trial_payment(callback_query.from_user.id, label)
+        payment = await db.get_payment_by_id(label, int(callback_query.from_user.id))
+        paymentstatus = await p2p_payments.check_trial_payment(callback_query.from_user.id, label, payment[0]['id'])
         check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
 
         if paymentstatus == True:
@@ -312,8 +314,9 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     server_name = server[0][0][1]
     server_price = server[0][0][2]
     
-    paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label)
     payment = await db.get_payment_by_id(label, int(user_id))
+    paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment[0]['id'])
+    
     # ЕСЛИ В ПЛАТЕЖКЕ ЦЕНА БОЛЬШЕ НУЛЯ ТО СТАВИТСЯ ТЕКУЩАЯ ЦЕНА ИЗ ЦЕНЫ СЕРВЕРА (server_price)
     price = (server_price if payment[0]['sum'] > 0 else f"Free ({server_price})") if len(payment) > 0 else server_price
     check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
@@ -397,9 +400,9 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
    
 
         async def prepare_data(label, user_id, referer_id, outline_key_id, new_expiration_at):
-            await db.add_payment(label, user_id, referer_id, 0, 0)
-            await db.update_payment_status_by_id(user_id, label, True)
-            await db.update_payment_referer_status_by_id(user_id, label, True)
+            new_payment = await db.add_payment(label, user_id, referer_id, 0, 0)
+            await db.update_payment_status_by_id(user_id, label, True, new_payment['id'])
+            await db.update_payment_referer_status_by_id(user_id, label, True, new_payment['id'])
             await db.update_key_expiration(outline_key_id, label, new_expiration_at)
             await db.update_free_months(user_id,-1)
             await outline.remove_data_limit(await db.get_server_key(int(server_id)), outline_key_id)
@@ -437,10 +440,6 @@ async def get_free_month(callback_query: CallbackQuery, callback_data: Dict [str
         print(f'ERROR: {e}')
         await bot.send_message(callback_query.from_user.id, "Что-то пошло не так... Попробуйте ещё раз или обратитесь в чат поддержки")
 
-async def wait_for_payment(user_id, label, payment_id):
-    await p2p_payments.check_payment(user_id, label, payment_id)
-    return
-
 async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,str]):
     try:
         print(f"\n PROLONG KEY: {callback_data}")
@@ -463,8 +462,6 @@ async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,st
         server = await db.get_server_by_id(int(server_id))
         server_name = server[0][0][1]
         server_price = server[0][0][2]
-
-        success_url = f"http://80.90.179.110/:6060/process?label={label}&status=some_status"
 
         if key_data[0]['outline_key_id']:
             print(f"\n PROLONG KEYDATA: {key_data[0]['outline_key_id']}")

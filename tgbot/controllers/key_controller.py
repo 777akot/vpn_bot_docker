@@ -74,7 +74,7 @@ async def disable_expired_keys():
                         raise Exception("Invalid Api Link")
                     
                     await outline.set_data_limit(api_link, outline_key_id)
-                    await db.update_payment_status(user_id, label, False)
+                    await db.update_key_payment_status(user_id, label, False)
                     # await db.set_key_active(key_id, label, False)
             
             if days_left == 6:

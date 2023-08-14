@@ -2,7 +2,7 @@
 # from aiogram.types import Message, CallbackQuery, ChatType
 
 # import requests
-
+import traceback
 import math
 
 from datetime import datetime, timedelta
@@ -102,6 +102,7 @@ async def referal_payment(user_id,label):
         referer_payout_percent = payment[0]['referer_payout']
         referer_payout_paid = bool(payment[0]['referer_payout_paid'])
         payment_sum = payment[0]['sum']
+        payment_id = int(payment[0]['id'])
         sum_paid = bool(payment[0]['sum_paid'])
         
 
@@ -130,7 +131,9 @@ async def referal_payment(user_id,label):
             f"\n Account: {referer_account}"
             )
 
-        referer_payout_sum = payment_sum - max(2, math.floor(payment_sum * referer_payout_percent / 100))
+
+
+        referer_payout_sum = max(2, payment_sum - max(2, math.floor(payment_sum * referer_payout_percent / 100)))
         print(f"\n Payout Sum: {referer_payout_sum}\n")
         
         if not referer_account:
@@ -141,7 +144,7 @@ async def referal_payment(user_id,label):
         
         await yoopay(referer_account, referer_payout_sum, label)
 
-        await db.update_payment_referer_status_by_id(user_id, label, bool(True))
+        await db.update_payment_referer_status_by_id(user_id, label, bool(True), payment_id)
 
     except Exception as e:
         print(f"ERROR: {e}")
@@ -198,6 +201,7 @@ async def check_payment(user_id, label, payment_id=None):
     print(f"\n Payment_data: {payment_data}")
     payment_created = payment_data[0]['created_at'] if payment_data and len(payment_data) > 0 else None
     payment_sum_paid = payment_data[0]['sum_paid'] if payment_data and len(payment_data) > 0 else None
+
     label = key_data[0]
     bought = key_data[1]
     print("\n KEY_DATA: \n", key_data)
@@ -212,9 +216,9 @@ async def check_payment(user_id, label, payment_id=None):
             if operation.status == 'success':
                 print ("operation.status: SUCCESS")
                 #УКАЗЫВАЕМ ЧТО КЛЮЧ ОПЛАЧЕН
-                await db.update_payment_status(user_id, label, bool(True))
+                await db.update_key_payment_status(user_id, label, bool(True))
                 #УКАЗЫВАЕМ ЧТО ПЛАТЕЖКА ОПЛАЧЕНА
-                await db.update_payment_status_by_id(user_id, label, bool(True))
+                await db.update_payment_status_by_id(user_id, label, bool(True), payment_id)
                 #УКАЗЫВАЕМ У ПОЛЬЗОВАТЕЛЯ ЧТО ОН СОВЕРШИЛ ОПЛАТУ ХОТЬ РАЗ
                 await db.update_user_payment_status(user_id, bool(True))
                 #ВЫЗОВ ВЫПЛАТЫ ПО РЕФЕРАЛКЕ
@@ -247,15 +251,17 @@ async def delete_unused_payments():
             payment_user_id = x["user_id"]
             payment_sum = x['sum']
             payment_sum_paid = x['sum_paid']
+            payment_id=x['id']
             if days_live > 0 and payment_sum_paid == False and payment_sum > 0:
                 print(f"PAYMENT to delete: {x}")
-                await db.delete_payment_by_label(payment_user_id, payment_label)
+                await db.delete_payment_by_label(payment_user_id, payment_label, payment_id)
                 
 
     except Exception as e:
         print(f"ERROR: {e}")
 
-async def check_trial_payment(user_id, label):
+async def check_trial_payment(user_id, label, payment_id=None):
+
     key_data = await db.get_payment_status(user_id, label)
     label = key_data[0]
     bought = key_data[1]
@@ -263,10 +269,15 @@ async def check_trial_payment(user_id, label):
 
     if bought == False:
         try:
-            await db.update_payment_status(user_id, label, bool(True))
-            await db.update_payment_status_by_id(user_id, label, bool(True))
-            await db.update_payment_trial(user_id, label)
+            #ОБНОВЛЯЕМ СТАТУС КЛЮЧА
+            await db.update_key_payment_status(user_id, label, bool(True))
+            #ОБНОВЛЯЕМ СТАТУС ПЛАТЕЖКИ
+            await db.update_payment_status_by_id(user_id, label, bool(True), payment_id)
+            #СТАВИМ В ПЛАТЕЖКЕ СУММУ 0
+            await db.update_payment_trial(user_id, label, payment_id)
         except Exception as e:
+            print(f"CHECK TRIAL ERROR: {e}")
+            traceback.print_exc()
             return False
     else:
         return True
