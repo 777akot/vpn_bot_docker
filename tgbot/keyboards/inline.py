@@ -71,6 +71,8 @@ def keyboard_help():
 
 def keyboard_client():
     keyboard = InlineKeyboardMarkup()
+    btn0 = InlineKeyboardButton(f'Android - Не с Google Play',
+                                          url=f'https://s3.amazonaws.com/outline-releases/client/android/stable/Outline-Client.apk')
     btn1 = InlineKeyboardButton(f'Android',
                                           url=f'https://play.google.com/store/apps/details?id=org.outline.android.client')
     btn2 = InlineKeyboardButton(f'Windows',
@@ -85,6 +87,7 @@ def keyboard_client():
                                           url=f'https://s3.amazonaws.com/outline-releases/client/linux/stable/Outline-Client.AppImage')
     keyboard.row(btn1, btn2, btn3) 
     keyboard.row(btn4, btn5, btn6)
+    keyboard.row(btn0)
     return keyboard
 
 

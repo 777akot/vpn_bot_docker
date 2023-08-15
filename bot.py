@@ -50,6 +50,7 @@ async def on_startup(dispatcher):
         await db.create_payments_table()
         register_all_filters(dispatcher)
         register_all_handlers(dispatcher)
+        
         # If you use polling
         await dispatcher.bot.set_my_commands([
             BotCommand('start', 'Запустить бота'),

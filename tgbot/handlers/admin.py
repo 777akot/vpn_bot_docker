@@ -1,5 +1,6 @@
 import logging
 from typing import Dict
+import traceback
 
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -68,21 +69,31 @@ async def admin_testpay(message: Message):
     # await check_payment(347207594,"v82henxufl")
     users = await db.show_users()
     errors = []
+    live = []
+    dead = []
     for x in users:
         try:
             chat = await dp.bot.get_chat(x['user_id'])
+            print(chat)
             if chat and chat['ok']:
                 print("OK")
+                live.append(x['user_id'])
             else:
                 print(f"NOT OK: {chat}")
+                dead.append(x['user_id'])
         except Exception as e:
-            errors.append(x)
+            errors.append(x['user_id'])
+            dead.append(x['user_id'])
             print(f"Error: {e}")
+            traceback.print_exc()
 
     if len(errors) > 0:
         for e in errors:
             print(f"\n {e}")
 
+    print(f"\n LIVE ({len(live)}): \n{','.join(map(str, live))}")
+    print(f"\n DEAD ({len(dead)}): \n{','.join(map(str, dead))}")
+    print(f"\n ERRORS ({len(errors)}): \n{','.join(map(str, errors))}")
     return
 
     

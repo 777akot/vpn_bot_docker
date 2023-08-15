@@ -1,5 +1,6 @@
 from aiohttp import web
 from tgbot.controllers import key_controller, p2p_payments
+from loader import db
 
 async def handle_http_request(request):
     try:

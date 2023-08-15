@@ -112,7 +112,6 @@ async def show_my_keys(message: Message):
     else:
         await message.answer(f'У вас пока что нет ключей доступа. Перейдите в главное меню чтобы создать новый ключ.')
     
-
 async def show_info(message: Message):
     # await clear_screen(message)
     user_name = message.chat.first_name
@@ -183,4 +182,5 @@ def register_user(dp: Dispatcher):
     dp.register_message_handler(show_info, commands=["info"], chat_type=ChatType.PRIVATE)
     dp.register_message_handler(text_process, content_types=["text"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(referals_handler, lambda c: c.data == 'referals', chat_type=ChatType.PRIVATE)
+    
     

@@ -16,3 +16,4 @@ class SubscriptionMiddleware(BaseMiddleware):
         except BadRequest:
             await message.answer(f"Пожалуйста, подпишитесь на канал {channel_id}, чтобы взаимодействовать с ботом")
             raise CancelHandler()
+        
