@@ -91,7 +91,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
         await callback_query.answer()
 
         from .vpn_settings import get_trial
-        # await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+        await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
         
         period = callback_data.get('period')
         if period is None:
@@ -209,11 +209,12 @@ async def get_claimed_key(callback_query: CallbackQuery, callback_data: Dict[str
                 accessUrl = key_accessUrl
 
             # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
-            
-            await bot.send_message(callback_query.from_user.id,
-                                f'Вставьте вашу ссылку доступа в приложение Outline:')
-            await bot.send_message(callback_query.from_user.id,
-                                f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
+            await bot.send_message(callback_query.from_user.id,(
+                                f'Вставьте вашу ссылку доступа в приложение Outline:'
+                                f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>'
+                                )
+                                )
+            await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
         except ClientConnectorError:
             await bot.send_message(callback_query.from_user.id,
                                 f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
@@ -544,7 +545,8 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
 
 async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, str]):
     try:
-        # await dp.bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+        
+        await dp.bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
         await callback_query.answer()
         data = callback_data
         server_id = data['server']
@@ -563,11 +565,13 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
         price_year = special_price if special else price*10
 
         user_id = callback_query.from_user.id
+        is_admin = user_id in admin_ids
         trial_used = await db.check_trial(user_id)
-
+        
+        print(f'IS ADMIN: {is_admin}')
         print(f"\n trial_used: {trial_used}")
 
-        prices = [price, price * 3, price_year]
+        prices = [price, price * 3, price_year] if not is_admin else [2,2,2]
         print(f"\n DATA: {data} \n")
         text = (
             f"Вы выбрали сервер: <b>{server_name}</b>\n\n"
