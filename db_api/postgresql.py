@@ -182,6 +182,10 @@ class Database:
         sql = "UPDATE vpn_users SET free_months = free_months + $2 WHERE user_id = $1"
         return await self.execute(sql, user_id, amount, execute=True)
 
+    async def set_user_dead(self, user_id):
+        sql = "UPDATE vpn_users SET role = 'dead' WHERE user_id = $1"
+        return await self.execute(sql, user_id, execute=True)
+
     # KEYS #
 
     async def get_all_labels(self):

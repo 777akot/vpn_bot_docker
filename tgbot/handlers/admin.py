@@ -2,7 +2,7 @@ import logging
 from typing import Dict
 import traceback
 
-from aiogram import Dispatcher
+from aiogram import Dispatcher, exceptions
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, ChatType, CallbackQuery
 
@@ -182,14 +182,18 @@ async def admin_send_notification_send(message: Message, state: FSMContext):
     await state.finish()
     users = await db.show_users()
     errors = []
-    sliced_users = users[5:]
+    sliced_users = users
     for x in sliced_users:
         try:
             print(f"USER: {x}")
             user_id = x['user_id']
+            trial_used = x['trial_used']
+            if trial_used == False:
+                await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
             # await dp.bot.send_message(x['user_id'],'Привет')
-            await dp.bot.send_message(user_id, text=message_text, entities=message.entities)
         except Exception as e:
+            if isinstance(e, exceptions.BotBlocked):
+                await db.set_user_dead(user_id)
             errors.append(x)
             print(f"ERROR: {e}")
     
