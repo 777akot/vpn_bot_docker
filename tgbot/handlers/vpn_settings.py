@@ -485,6 +485,7 @@ async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,st
         # payment_status = await wait_for_payment(user_id, label, )
 
         return
+    
     except Exception as e:
         print(f"ERROR: PROLONG KEY: {e}")
         if e:

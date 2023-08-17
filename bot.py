@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     # If you use polling
     def start_bot():
-        dp.middleware.setup(SubscriptionMiddleware())
+        # dp.middleware.setup(SubscriptionMiddleware())
         executor.start_polling(dp, skip_updates=True,
                             on_startup=on_startup, on_shutdown=on_shutdown)
         # If you want to use webhooks.
