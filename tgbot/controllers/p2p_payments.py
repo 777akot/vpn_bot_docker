@@ -14,6 +14,10 @@ from yoomoney import Client, Quickpay
 
 import aiohttp
 
+async def check_trial_isoff():
+    trial_off = True
+    return trial_off
+
 async def get_price(request):
     try:
 
@@ -283,3 +287,4 @@ async def check_trial_payment(user_id, label, payment_id=None):
         return True
     
     return True
+

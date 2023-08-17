@@ -141,11 +141,11 @@ async def get_nickname(user_id):
             return nickname
     return None
 
-async def keyboard_show_periods(server_id, prices, trial_used):
+async def keyboard_show_periods(server_id, prices, trial_hidden):
     try:
         keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
         
-        print(f"\n TRIAL: {trial_used}")
+        print(f"\n TRIAL: {trial_hidden}")
         btn0 = InlineKeyboardButton(f'1 неделя - Бесплатный тестовый период', 
                                             callback_data=vpn_p2p_period_callback.new(
                                                                 action_type="new_p2p_key",
@@ -166,7 +166,7 @@ async def keyboard_show_periods(server_id, prices, trial_used):
                                                                 period="12m",
                                                                 price=prices[2]))
         
-        if trial_used != True:
+        if trial_hidden != True:
             keyboard.add(btn0)
         keyboard.add(btn1, btn3)
         return keyboard

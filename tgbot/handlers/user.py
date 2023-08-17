@@ -9,6 +9,7 @@ from loader import bot, db, admin_ids
 from tgbot.keyboards.callback_data_factory import vpn_keys_callback
 from tgbot.keyboards.inline import keyboard_start, keyboard_help, keyboard_p2p_start, keyboard_keys_list, keyboard_client, permanent_keyboard
 
+from tgbot.controllers import p2p_payments
 from tgbot.controllers.referal import get_referal_users
 from tgbot.handlers.partner import check_partner, partner_start
 from tgbot.handlers.admin import admin_start
@@ -34,7 +35,7 @@ async def clear_screen(message):
 async def p2p_start(message: Message):
 
     is_admin = False
-    
+    trial_off = await p2p_payments.check_trial_isoff()
 
     if message.chat.id in admin_ids:
         is_admin = True
@@ -60,19 +61,25 @@ async def p2p_start(message: Message):
     finally:
         def get_nbsp(count):
             return "\u00A0" * count
-            
+        
 
         await bot.send_message(chat_id=message.chat.id,text=f"Привет, {message.chat.first_name}! \n\n",reply_markup=permanent_keyboard(is_admin))
         await message.answer(
-                             f'<b>🕹 Главное меню </b>\n\n'
+                             (f'<b>🕹 Главное меню </b>\n\n'
                              f'Пользоваться VPN без рекламы и тормозов – проще! 🌐🚀\n\n'
                              f'Нажми "Скачать клиент" для \nустановки приложения Outline.📲💻\n\n'
-                             f'Затем выбери страну нажав "Доступ к VPN".🌍\nЕсли новый пользователь – используй Бесплатный Доступ.🆓\n'
-                             f'Если нет, после оплаты, нажми получить ключ. 💰🔑\n'
+                             f'Затем выбери страну нажав "Доступ к VPN".🌍\n'
+                             ) + (
+                             f'Если новый пользователь – используй Бесплатный Доступ.🆓\n'
+                             f'Если нет,'
+                             if not trial_off else 'И'
+                             ) + (
+                             f' после оплаты, нажми получить ключ. 💰🔑\n'
                              f'Скопируй и вставь ключ в клиент – и неограниченный \nдоступ в интернет у тебя. 🔓🌐\n\n'
                              f'Если есть вопросы или что-то не получилось – нажми "Чат поддержки". 🤝💬\n'
                              f'Присоединяйся, чтобы сделать сервис удобным для тебя! 🙌😊\n'
                              f'<pre>{get_nbsp(70)}</pre><pre>\u00A0</pre>\n'
+                             )
                              ,
                         reply_markup=keyboard_p2p_start(), disable_web_page_preview=False)
 
@@ -182,5 +189,5 @@ def register_user(dp: Dispatcher):
     dp.register_message_handler(show_info, commands=["info"], chat_type=ChatType.PRIVATE)
     dp.register_message_handler(text_process, content_types=["text"], chat_type=ChatType.PRIVATE)
     dp.register_callback_query_handler(referals_handler, lambda c: c.data == 'referals', chat_type=ChatType.PRIVATE)
-    
+
     

@@ -567,9 +567,12 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
         user_id = callback_query.from_user.id
         is_admin = user_id in admin_ids
         trial_used = await db.check_trial(user_id)
-        
+        trial_off = await p2p_payments.check_trial_isoff()
+        trial_hidden = trial_used or (trial_off and not is_admin)
+
         print(f'IS ADMIN: {is_admin}')
         print(f"\n trial_used: {trial_used}")
+        print(f'\n trial_hidden: {trial_hidden}")')
 
         prices = [price, price * 3, price_year] if not is_admin else [2,2,2]
         print(f"\n DATA: {data} \n")
@@ -582,12 +585,12 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
             if special else ""
             ) + (
             f"\nИли воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку.\n"
-            if trial_used == False else ""
+            if not trial_hidden else ""
             ) + (
             f"\n<b>Выберите период:</b>\n"
             )
         
-        await bot.send_message(callback_query.from_user.id,text, reply_markup=await keyboard_show_periods(server_id, prices, trial_used))
+        await bot.send_message(callback_query.from_user.id,text, reply_markup=await keyboard_show_periods(server_id, prices, trial_hidden))
     except Exception as e:
         print(f"ERROR: {e}")
 
