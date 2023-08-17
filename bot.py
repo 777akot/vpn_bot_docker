@@ -50,7 +50,7 @@ async def on_startup(dispatcher):
         await db.create_payments_table()
         register_all_filters(dispatcher)
         register_all_handlers(dispatcher)
-        
+
         # If you use polling
         await dispatcher.bot.set_my_commands([
             BotCommand('start', 'Запустить бота'),
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     # If you use polling
     def start_bot():
-        # dp.middleware.setup(SubscriptionMiddleware())
+        dp.middleware.setup(SubscriptionMiddleware())
         executor.start_polling(dp, skip_updates=True,
                             on_startup=on_startup, on_shutdown=on_shutdown)
         # If you want to use webhooks.
