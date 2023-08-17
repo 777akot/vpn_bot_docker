@@ -445,6 +445,7 @@ async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,st
     try:
         print(f"\n PROLONG KEY: {callback_data}")
         user_id = callback_query.from_user.id
+        is_admin = user_id in admin_ids
         user_data = await db.get_user_by_id(user_id)
         referer_id = int(user_data[0]["referer_id"]) if user_data[0].get("referer_id") else None
         referer_payout = (int(referer_config.get('payout_percent')) if referer_config.get('payout_percent') else None) if referer_id else None
@@ -456,13 +457,13 @@ async def prolong_key(callback_query: CallbackQuery, callback_data: Dict [str,st
         label = callback_data['key']
         key_data = await db.get_key_all_data_by_label(label)
         key_active = key_data[0]['active']
-        if key_active==True:
-            raise Exception('KEY_IS_ACTIVE')
+        # if key_active==True:
+        #     raise Exception('KEY_IS_ACTIVE')
         
         server_id = key_data[0]['server_id']
         server = await db.get_server_by_id(int(server_id))
         server_name = server[0][0][1]
-        server_price = server[0][0][2]
+        server_price = server[0][0][2] if not is_admin else 2
 
         if key_data[0]['outline_key_id']:
             print(f"\n PROLONG KEYDATA: {key_data[0]['outline_key_id']}")
@@ -501,6 +502,19 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
         label = callback_data['label']
         payment_id = callback_data['payment_id']
         server_id = callback_data['server']
+        key_data = await db.get_key_all_data_by_label(label)
+
+        key_expiration_at = key_data[0].get('expiration_at')
+        start_expiration_offset = key_expiration_at if key_expiration_at > datetime.now(pytz.UTC) else datetime.now(pytz.UTC)
+        expiration_at = start_expiration_offset + relativedelta(months=1)
+
+        print((
+                f"start_expiration_offset: {start_expiration_offset}"
+                f"expiration_at: {expiration_at}"
+                )
+            )
+
+        # return
         check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
         api_key = await db.get_server_key(int(server_id))
 
@@ -531,7 +545,10 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
                 await callback_query.answer()
             
             # ОБНОВИТЬ EXPIRATION_AT у ключа
-            expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
+
+            
+
+            # expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
             await db.update_key_expiration(outline_key_id, label, expiration_at)
             await outline.remove_data_limit(api_key, outline_key_id)
 
