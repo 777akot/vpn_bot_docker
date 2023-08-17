@@ -551,7 +551,8 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
             # expiration_at = datetime.now() + relativedelta(months=int(key_config.get('expiration')))
             await db.update_key_expiration(outline_key_id, label, expiration_at)
             await outline.remove_data_limit(api_key, outline_key_id)
-
+            
+            await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
             await bot.send_message(callback_query.from_user.id,
                                 f'Ключ успешно оплачен!')
         elif paymentstatus == False:
