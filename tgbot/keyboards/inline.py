@@ -8,6 +8,7 @@ from loader import db, dp
 from .callback_data_factory import vpn_callback, vpn_p2p_callback, vpn_p2p_claim_callback, vpn_keys_callback,trial_callback, partner_join_callback, admin_send_notification_callback, vpn_prolong_callback, vpn_p2p_period_callback
 
 from tgbot.controllers import key_controller
+from tgbot.utils.date_utils import format_duration
 
 logger = logging.getLogger(__name__)
 
@@ -141,15 +142,15 @@ async def get_nickname(user_id):
             return nickname
     return None
 
-async def keyboard_show_periods(server_id, prices, trial_hidden):
+async def keyboard_show_periods(server_id, prices, trial_hidden, trial_data):
     try:
         keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
         
         print(f"\n TRIAL: {trial_hidden}")
-        btn0 = InlineKeyboardButton(f'1 неделя - Бесплатный тестовый период', 
+        btn0 = InlineKeyboardButton(f'{format_duration(trial_data.get("trial_period"))} - Бесплатный тестовый период', 
                                             callback_data=vpn_p2p_period_callback.new(
                                                                 action_type="new_p2p_key",
-                                                                server=server_id, period="1w", 
+                                                                server=server_id, period=trial_data.get('trial_period'),
                                                                 price=0))
         
         btn1 = InlineKeyboardButton(f'1 Месяц - {prices[0]} RUB', 

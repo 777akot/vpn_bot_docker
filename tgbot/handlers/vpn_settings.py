@@ -17,6 +17,7 @@ import pytz
 from dateutil.relativedelta import relativedelta
 
 from loader import dp, db, bot, outline, quickpay, key_config, referer_config, admin_ids
+
 from tgbot.keyboards.callback_data_factory import (
     vpn_callback, 
     vpn_p2p_callback, 
@@ -39,7 +40,7 @@ from tgbot.controllers import key_controller
 from tgbot.controllers import p2p_payments
 
 from tgbot.utils.confirm_dialog import confirm_dialog
-
+from tgbot.utils.date_utils import format_duration
 
 async def vpn_handler(message: Message):
     # await bot.delete_message(message.chat.id, message.message_id)
@@ -76,7 +77,9 @@ async def generate_expiration(period):
         quantity = int(period[:-1])
         unit = period[-1]
 
-        if unit == 'w':
+        if unit == 'd':
+            return datetime.now() + timedelta(days=quantity)
+        elif unit == 'w':
             return datetime.now() + timedelta(weeks=quantity)
         elif unit == 'm':
             return datetime.now() + relativedelta(months=quantity)
@@ -145,7 +148,6 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
             await get_trial(callback_query, data)
             return
         else:
-        
             #ГЕНЕРИТЬСЯ ПЛАТЕЖКА ДЛЯ ПЕРЕДАЧИ ССЫЛКИ НА ОПЛАТУ
             quickpay = await p2p_payments.create_payment(label,selected_price)
 
@@ -159,7 +161,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
             text = (
                 f'Вы выбрали сервер <b>{server_name}</b> \n'
                 ) + (
-                f'Сроком (месяцев): <b>{period_quantity}</b> \n'
+                f'Сроком (месяцев): <b>{format_duration(period_quantity)}</b> \n'
                 f'Стоимость: <b>{selected_price} RUB</b>\n' if period_quantity > 1 else ''
                 ) + (
                 f'Стоимость ежемесячной подписки <b>{selected_price} RUB</b>\n \n' if period_quantity == 1 else ''
@@ -252,8 +254,8 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
             try:
                 accessUrl = check_outline_key[1]
                 if check_outline_key[0] == None:
-                    current_date = datetime.now(pytz.utc)
-                    new_expiration_at = current_date + timedelta(days=7)
+                    # current_date = datetime.now(pytz.utc)
+                    # new_expiration_at = current_date + timedelta(days=7)
                     api_key = await db.get_server_key(int(server_id))
                     data = await outline.create_key(api_key)
                     key_id = int(data.get('id'))
@@ -263,17 +265,17 @@ async def get_trial(callback_query: CallbackQuery, callback_data: Dict[str, str]
                                                             label, 
                                                             key_id, 
                                                             key_accessUrl)
-                    await db.update_key_expiration(key_id, label, new_expiration_at)
+                    # await db.update_key_expiration(key_id, label, new_expiration_at)
                     print(f"\n Data: \n: {data} , {updatekey}")
                     accessUrl = key_accessUrl
 
                 # limited = await outline.set_data_limit(await db.get_server_key(int(server_id)),data.get('id'))
-                result = await db.set_trial_used(callback_query.from_user.id, True)
+                await db.set_trial_used(callback_query.from_user.id, True)
 
-                await bot.send_message(callback_query.from_user.id,
-                                    f'Вставьте вашу ссылку доступа в приложение Outline:')
-                await bot.send_message(callback_query.from_user.id,
-                                    f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>')
+                await bot.send_message(callback_query.from_user.id, (
+                                    f'Вставьте вашу ссылку доступа в приложение Outline:'
+                                    f'<code>{await generate_outline_link_with_servername(accessUrl, int(server_id))}</code>'
+                                    ))
             except ClientConnectorError:
                 await bot.send_message(callback_query.from_user.id,
                                     f'Не удалось связаться с сервером для получения ключа, попробуйте через какое-то время')
@@ -586,8 +588,11 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
         user_id = callback_query.from_user.id
         is_admin = user_id in admin_ids
         trial_used = await db.check_trial(user_id)
-        trial_off = await p2p_payments.check_trial_isoff()
+        trial_data = await p2p_payments.get_trial_data()
+        trial_off = trial_data.get('trial_off')
+        trial_period = trial_data.get('trial_period')
         trial_hidden = trial_used or (trial_off and not is_admin)
+        
 
         print(f'IS ADMIN: {is_admin}')
         print(f"\n trial_used: {trial_used}")
@@ -603,13 +608,13 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
             f"\n<b>Внимание Акция! Оставшиеся дни: {special_days_to_go}. \n{special_price} за годовую подписку! ({math.ceil((special_price/12)*10)/10} в месяц!)</b> \n"
             if special else ""
             ) + (
-            f"\nИли воспользуйтесь бесплатным тестовым периодом (1 неделя), нажав соответствующую кнопку.\n"
+            f"\nИли воспользуйтесь бесплатным тестовым периодом ({format_duration(trial_period)}), нажав соответствующую кнопку.\n"
             if not trial_hidden else ""
             ) + (
             f"\n<b>Выберите период:</b>\n"
             )
         
-        await bot.send_message(callback_query.from_user.id,text, reply_markup=await keyboard_show_periods(server_id, prices, trial_hidden))
+        await bot.send_message(callback_query.from_user.id,text, reply_markup=await keyboard_show_periods(server_id, prices, trial_hidden, trial_data))
     except Exception as e:
         print(f"ERROR: {e}")
 

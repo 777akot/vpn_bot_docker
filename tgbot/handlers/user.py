@@ -35,7 +35,8 @@ async def clear_screen(message):
 async def p2p_start(message: Message):
 
     is_admin = False
-    trial_off = await p2p_payments.check_trial_isoff()
+    trial_data = await p2p_payments.get_trial_data()
+    trial_off = trial_data.get('trial_off')
 
     if message.chat.id in admin_ids:
         is_admin = True

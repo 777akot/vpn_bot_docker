@@ -14,9 +14,11 @@ from yoomoney import Client, Quickpay
 
 import aiohttp
 
-async def check_trial_isoff():
-    trial_off = True
-    return trial_off
+async def get_trial_data():
+    trial_off = False
+    trial_period = '3d'
+    trial_data = {'trial_off': trial_off, 'trial_period': trial_period}
+    return trial_data
 
 async def get_price(request):
     try:

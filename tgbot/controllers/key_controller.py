@@ -54,8 +54,6 @@ async def disable_expired_keys():
             label = x["label"]
             user_id = x["owner_id"]
 
-            
-
             print(f'\n{days_left}\n')
 
             if days_left <= 0:
@@ -77,12 +75,9 @@ async def disable_expired_keys():
                     await db.update_key_payment_status(user_id, label, False)
                     # await db.set_key_active(key_id, label, False)
             
-            if days_left == 6:
-                if key_active == True or key_bought == True:
-                    server_name = await get_name_data(x)
-                    await notifications_controller.send_expiration_notification(user_id, server_name, key_id, days_left)
-                
-            if days_left == 1:
+            days_to_notify = [1]
+               
+            if days_left in days_to_notify:
                 if key_active == True or key_bought == True:
                     server_name = await get_name_data(x)
                     await notifications_controller.send_expiration_notification(user_id, server_name, key_id, days_left)
