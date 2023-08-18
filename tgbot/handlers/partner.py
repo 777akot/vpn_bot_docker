@@ -33,7 +33,7 @@ async def get_user_data(user_id):
         if payments and len(payments) > 0:
             for x in payments:
                 # print(f"\n FOR X : {x[0][0]} \n")
-                payments_sum += x[0][0] - max(2, math.floor(x[0][0] * x[0][1] / 100))
+                payments_sum += max(0, math.floor(x[0][0] - x[0][0] * x[0][1] / 100))
 
         if user and len(user) > 0:
             res = {'user':user[0], 'referals': referals, 'payments_sum': payments_sum}
