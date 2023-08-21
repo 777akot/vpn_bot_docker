@@ -137,20 +137,18 @@ async def referal_payment(user_id,label):
             f"\n Account: {referer_account}"
             )
 
+       
+            if not referer_account:
+                if referer_role == 'inviter':
+                    await db.update_free_months(referer_id, 1)
+                error_message = "No Referer Account"
+                raise Exception(error_message)
+            
+            referer_payout_sum = max(2, payment_sum - max(2, math.floor(payment_sum * referer_payout_percent / 100)))
+            print(f"\n Payout Sum: {referer_payout_sum}\n")
 
-
-        referer_payout_sum = max(2, payment_sum - max(2, math.floor(payment_sum * referer_payout_percent / 100)))
-        print(f"\n Payout Sum: {referer_payout_sum}\n")
-        
-        if not referer_account:
-            if referer_role == 'inviter':
-                await db.update_free_months(referer_id, 1)
-            error_message = "No Referer Account"
-            raise Exception(error_message)
-        
-        await yoopay(referer_account, referer_payout_sum, label)
-
-        await db.update_payment_referer_status_by_id(user_id, label, bool(True), payment_id)
+            await yoopay(referer_account, referer_payout_sum, label)
+            await db.update_payment_referer_status_by_id(user_id, label, bool(True), payment_id)
 
     except Exception as e:
         print(f"ERROR: {e}")
@@ -203,7 +201,7 @@ async def check_payment(user_id, label, payment_id=None):
     #СМОТРИМ В БАЗЕ БЫЛ ЛИ УЖЕ ОПЛАЧЕН КЛЮЧ И ЕСТЬ ОТМЕТКА В БАЗЕ
     key_data = await db.get_payment_status(user_id, label)
     #PATMENT_CREATED НУЖЕН ЧТОБЫ ВЗЯТЬ ТОЛЬКО ТЕ ОПЕРАЦИИ КОТОРЫЕ СОЗДАНЫ ПОСЛЕ СОЗДАНИЯ ПЛАТЕЖКИ PAYMENT
-    payment_data = await db.get_payment_by_payment_id(int(user_id), label, int(payment_id)) if payment_id else None
+    payment_data = await db.get_payment_by_payment_id(int(user_id), label, int(payment_id))
     print(f"\n Payment_data: {payment_data}")
     payment_created = payment_data[0]['created_at'] if payment_data and len(payment_data) > 0 else None
     payment_sum_paid = payment_data[0]['sum_paid'] if payment_data and len(payment_data) > 0 else None
@@ -233,6 +231,8 @@ async def check_payment(user_id, label, payment_id=None):
                 # await bot.send_message(call.message.chat.id,
                 #                        MESSAGES['successful_payment'])
         except Exception as e:
+            print(f"CHECK ERROR: {e}")
+            traceback.print_exc()
             return False
             # await bot.send_message(call.message.chat.id,
             #                        MESSAGES['wait_message'])

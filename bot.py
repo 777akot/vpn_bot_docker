@@ -11,6 +11,7 @@ from loader import dp, bot  # , config
 from tgbot.handlers.http_handler import handle_http_request, handle_http_payments, handle_http_getchat, handle_http_prolong_trial
 
 from tgbot.middlewares.channel_member import SubscriptionMiddleware
+from tgbot.middlewares.user_actions_middleware import UserActionsMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,7 @@ if __name__ == '__main__':
     # If you use polling
     def start_bot():
         # dp.middleware.setup(SubscriptionMiddleware())
+        dp.middleware.setup(UserActionsMiddleware())
         executor.start_polling(dp, skip_updates=True,
                             on_startup=on_startup, on_shutdown=on_shutdown)
         # If you want to use webhooks.

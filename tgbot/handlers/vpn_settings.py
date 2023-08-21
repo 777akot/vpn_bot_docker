@@ -317,32 +317,35 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     server_name = server[0][0][1]
     server_price = server[0][0][2]
     
-    payment = await db.get_payment_by_id(label, int(user_id))
-    paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment[0]['id'])
-    
-    # ЕСЛИ В ПЛАТЕЖКЕ ЦЕНА БОЛЬШЕ НУЛЯ ТО СТАВИТСЯ ТЕКУЩАЯ ЦЕНА ИЗ ЦЕНЫ СЕРВЕРА (server_price)
-    price = (server_price if payment[0]['sum'] > 0 else f"Free ({server_price})") if len(payment) > 0 else server_price
-    check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
-    if paymentstatus == True and server_id is not None:
-        try:
-            accessUrl = check_outline_key[1]
-            if check_outline_key[0] == None:
-                print(f"\n CREATE OUTLINE KEY \n")
-                api_key = await db.get_server_key(int(server_id))
-                data = await outline.create_key(api_key)
-                key_id = int(data.get('id'))
-                key_accessUrl = data.get('accessUrl')
-                await outline.set_name_label(api_key, key_id, label)
-                updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
-                                                           label, 
-                                                           key_id, 
-                                                           key_accessUrl)
-                print(f"\n Data: \n: {data} , {updatekey}")
-                accessUrl = key_accessUrl
-        except Exception as e:
-            print(f"ERROR: {e}")
-    else:
-        accessUrl = None
+    try:
+        payment = await db.get_payment_by_id(label, int(user_id))
+        paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment[0]['id'] if len(payment) else None)
+        
+        # ЕСЛИ В ПЛАТЕЖКЕ ЦЕНА БОЛЬШЕ НУЛЯ ТО СТАВИТСЯ ТЕКУЩАЯ ЦЕНА ИЗ ЦЕНЫ СЕРВЕРА (server_price)
+        price = (server_price if payment[0]['sum'] > 0 else f"Free ({server_price})") if len(payment) > 0 else server_price
+        check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
+        if paymentstatus == True and server_id is not None:
+            try:
+                accessUrl = check_outline_key[1]
+                if check_outline_key[0] == None:
+                    print(f"\n CREATE OUTLINE KEY \n")
+                    api_key = await db.get_server_key(int(server_id))
+                    data = await outline.create_key(api_key)
+                    key_id = int(data.get('id'))
+                    key_accessUrl = data.get('accessUrl')
+                    await outline.set_name_label(api_key, key_id, label)
+                    updatekey = await db.update_outline_key_id(callback_query.from_user.id, 
+                                                            label, 
+                                                            key_id, 
+                                                            key_accessUrl)
+                    print(f"\n Data: \n: {data} , {updatekey}")
+                    accessUrl = key_accessUrl
+            except Exception as e:
+                print(f"ERROR: {e}")
+        else:
+            accessUrl = None
+    except Exception as e:
+        print(f"ERROR: {e}")
     
     text = (
         f"Ключ не оплачен \n\n"
