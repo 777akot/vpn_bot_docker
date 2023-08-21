@@ -66,6 +66,9 @@ async def admin_price(message: Message, state: FSMContext):
 
 async def admin_testpay(message: Message):
     await message.answer("Тестовая выплата")
+
+    
+    return
     # await check_payment(347207594,"v82henxufl")
     users = await db.show_users()
     errors = []

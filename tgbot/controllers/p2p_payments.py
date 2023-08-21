@@ -1,9 +1,10 @@
 # from aiogram import Dispatcher
 # from aiogram.types import Message, CallbackQuery, ChatType
 
-# import requests
+import requests
 import traceback
 import math
+import aiohttp
 
 from datetime import datetime, timedelta
 import pytz
@@ -155,6 +156,12 @@ async def referal_payment(user_id,label):
     return
 
 async def create_payment(label, price: int, successURL=None):
+
+    async def get_data(url):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                return await response.text()
+    
     qp = Quickpay(
         receiver=quickpay['receiver'],
         quickpay_form=quickpay['quickpay_form'],
@@ -164,6 +171,7 @@ async def create_payment(label, price: int, successURL=None):
         label=label,
         successURL=successURL
     )
+    r = await get_data(qp.redirected_url)
     return qp
 
 async def check_yoomoney(label):
@@ -202,7 +210,11 @@ async def check_payment(user_id, label, payment_id=None):
     key_data = await db.get_payment_status(user_id, label)
     #PATMENT_CREATED НУЖЕН ЧТОБЫ ВЗЯТЬ ТОЛЬКО ТЕ ОПЕРАЦИИ КОТОРЫЕ СОЗДАНЫ ПОСЛЕ СОЗДАНИЯ ПЛАТЕЖКИ PAYMENT
     payment_data = await db.get_payment_by_payment_id(int(user_id), label, int(payment_id))
-    print(f"\n Payment_data: {payment_data}")
+    
+    if payment_data is None:
+        raise Exception("NO PAYMENT DATA")
+    else:
+        print(f"\n Payment_data: {payment_data}")
     payment_created = payment_data[0]['created_at'] if payment_data and len(payment_data) > 0 else None
     payment_sum_paid = payment_data[0]['sum_paid'] if payment_data and len(payment_data) > 0 else None
 
@@ -210,11 +222,21 @@ async def check_payment(user_id, label, payment_id=None):
     bought = key_data[1]
     print("\n KEY_DATA: \n", key_data)
 
+    print(f"\n Payment_created: {payment_created}")
+
     #ЗДЕСЬ ОБРАЩЕНИЕ К PAYMENT API (YOOMONEY) ДЛЯ ПРОВЕРКИ ОПЛАТЫ
     if bought == False or payment_sum_paid == False:
         client = Client(yooclient['token'])
-        history = client.operation_history(label=label,from_date=payment_created)
+        history = client.operation_history(label=label,from_date=payment_created.astimezone(pytz.timezone('Europe/Moscow')))
         try:
+            # def get_operation():
+            #     result = None
+            #     for x in history.operations:
+            #         if x.label == label:
+            #             result = x
+            #             print(f"HISTORY: {x.datetime}")
+            #     return result
+            # operation = get_operation()
             operation = history.operations[-1]
             #ЕСЛИ ОПЛАТА ПРОШЛА - МЕНЯЕТ PAYMENT STATUS (BOUGHT)
             if operation.status == 'success':
