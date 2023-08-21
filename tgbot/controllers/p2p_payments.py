@@ -222,7 +222,7 @@ async def check_payment(user_id, label, payment_id=None):
                 #УКАЗЫВАЕМ ЧТО КЛЮЧ ОПЛАЧЕН
                 await db.update_key_payment_status(user_id, label, bool(True))
                 #УКАЗЫВАЕМ ЧТО ПЛАТЕЖКА ОПЛАЧЕНА
-                await db.update_payment_status_by_id(user_id, label, bool(True), payment_id)
+                await db.update_payment_status_by_id(user_id, label, bool(True), int(payment_id))
                 #УКАЗЫВАЕМ У ПОЛЬЗОВАТЕЛЯ ЧТО ОН СОВЕРШИЛ ОПЛАТУ ХОТЬ РАЗ
                 await db.update_user_payment_status(user_id, bool(True))
                 #ВЫЗОВ ВЫПЛАТЫ ПО РЕФЕРАЛКЕ

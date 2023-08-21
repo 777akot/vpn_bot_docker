@@ -524,7 +524,7 @@ async def get_prolong_key(callback_query: CallbackQuery, callback_data: Dict [st
         api_key = await db.get_server_key(int(server_id))
 
 
-        paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, int(payment_id) if payment_id else None)
+        paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment_id)
         if paymentstatus == True:
             check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
             accessUrl = check_outline_key[1]
