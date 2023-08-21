@@ -317,6 +317,7 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
     server_name = server[0][0][1]
     server_price = server[0][0][2]
     
+    
     try:
         payment = await db.get_payment_by_id(label, int(user_id))
         paymentstatus = await p2p_payments.check_payment(callback_query.from_user.id, label, payment[0]['id'] if len(payment) else None)
@@ -324,7 +325,8 @@ async def select_key(callback_query: CallbackQuery, callback_data: Dict [str,str
         # ЕСЛИ В ПЛАТЕЖКЕ ЦЕНА БОЛЬШЕ НУЛЯ ТО СТАВИТСЯ ТЕКУЩАЯ ЦЕНА ИЗ ЦЕНЫ СЕРВЕРА (server_price)
         price = (server_price if payment[0]['sum'] > 0 else f"Free ({server_price})") if len(payment) > 0 else server_price
         check_outline_key = await db.get_outline_key(callback_query.from_user.id, label)
-        if paymentstatus == True and server_id is not None:
+        
+        if (paymentstatus == True or key_data[0].get('active') == True) and server_id is not None:
             try:
                 accessUrl = check_outline_key[1]
                 if check_outline_key[0] == None:
