@@ -187,7 +187,23 @@ async def keyboard_show_users(users_chunk):
         for x in users_chunk:
             # print(f"\n user {x} \n")
             username = await get_nickname(x[1])
-            keyboard.insert(InlineKeyboardButton(f'{x[1]}: {username} {x[2]} 🆓:{show_emoji(x[5])} 💰:{show_emoji(x[6])} R:{x[7]}', callback_data=f'cancel'))
+            btn0 = InlineKeyboardButton(
+                        text=f'{x[1]}',
+                        callback_data='do_nothing'
+                    )
+            btn1 = InlineKeyboardButton(
+                        text=f'{username} {x[2]}',
+                        callback_data='do_nothing'
+                    )
+            btn2 = InlineKeyboardButton(
+                        text=f'🆓:{show_emoji(x[5])} 💰:{show_emoji(x[6])}', 
+                        callback_data='do_nothing'
+                    )
+            btn3 = InlineKeyboardButton(
+                        text=f'R:{x[7]}', 
+                        callback_data='do_nothing'
+                    )
+            keyboard.row(btn0, btn1, btn2, btn3)
         return keyboard
     except Exception as e:
         print(f"ERROR: {e}")

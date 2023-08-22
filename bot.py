@@ -25,11 +25,13 @@ def register_all_handlers(dp):
     from tgbot.handlers.admin import register_admin
     from tgbot.handlers.partner import register_partner
     from tgbot.handlers.cancel import register_cancel
+    from tgbot.handlers.do_nothing import register_do_nothing
     from tgbot.handlers.error_handler import register_error_handler
     from tgbot.handlers.user import register_user
     from tgbot.handlers.vpn_settings import register_vpn_handlers
 
     register_cancel(dp)
+    register_do_nothing(dp)
     register_admin(dp)
     register_partner(dp)
     register_user(dp)
