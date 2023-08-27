@@ -161,7 +161,7 @@ async def get_new_p2p_key(callback_query: CallbackQuery, callback_data: Dict[str
             text = (
                 f'Вы выбрали сервер <b>{server_name}</b> \n'
                 ) + (
-                f'Сроком (месяцев): <b>{format_duration(period_quantity)}</b> \n'
+                f'Сроком (месяцев): <b>{period_quantity}</b> \n'
                 f'Стоимость: <b>{selected_price} RUB</b>\n' if period_quantity > 1 else ''
                 ) + (
                 f'Стоимость ежемесячной подписки <b>{selected_price} RUB</b>\n \n' if period_quantity == 1 else ''

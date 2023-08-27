@@ -15,6 +15,8 @@ from tgbot.states.notification_add import AddNotificationState
 
 from tgbot.controllers.p2p_payments import yoopay,referal_payment, check_yoomoney, admin_check_yoomoney
 from tgbot.controllers import key_controller, p2p_payments, notifications_controller
+# from tgbot.controllers.graph_controller import handle_plot_command
+
 
 async def admin_start(message: Message):
     await message.answer('Выберите действие:', reply_markup=keyboard_admin_action())
@@ -67,7 +69,7 @@ async def admin_price(message: Message, state: FSMContext):
 async def admin_testpay(message: Message):
     await message.answer("Тестовая выплата")
 
-    
+    # await handle_plot_command(dp.bot, message.chat.id)
     return
     # await check_payment(347207594,"v82henxufl")
     users = await db.show_users()

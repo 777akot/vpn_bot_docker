@@ -3,5 +3,6 @@ __pycache__/
 .git
 .idea
 volumes
+venv
 
 # /.env
