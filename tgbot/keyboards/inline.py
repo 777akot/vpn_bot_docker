@@ -146,6 +146,7 @@ async def keyboard_show_periods(server_id, prices, trial_hidden, trial_data):
     try:
         keyboard = InlineKeyboardMarkup(row_width=1,resize_keyboard=True)
         
+        
         print(f"\n TRIAL: {trial_hidden}")
         btn0 = InlineKeyboardButton(f'{format_duration(trial_data.get("trial_period"))} - Бесплатный тестовый период', 
                                             callback_data=vpn_p2p_period_callback.new(
@@ -153,12 +154,24 @@ async def keyboard_show_periods(server_id, prices, trial_hidden, trial_data):
                                                                 server=server_id, period=trial_data.get('trial_period'),
                                                                 price=0))
         
-        btn1 = InlineKeyboardButton(f'1 Месяц - {prices[0]} RUB', 
+        btn1 = InlineKeyboardButton(f'1 Месяц - {prices[0]} RUB',
                                             callback_data=vpn_p2p_period_callback.new(
                                                                 action_type="new_p2p_key",
                                                                 server=server_id,
                                                                 period="1m",
                                                                 price=prices[0]))
+        btn1_2 = InlineKeyboardButton(f'{format_duration("3m")} - {prices[0]*3} RUB',
+                                            callback_data=vpn_p2p_period_callback.new(
+                                                                action_type="new_p2p_key",
+                                                                server=server_id,
+                                                                period="3m",
+                                                                price=prices[0]*3))
+        btn1_3 = InlineKeyboardButton(f'{format_duration("6m")} - {prices[0]*6} RUB',
+                                            callback_data=vpn_p2p_period_callback.new(
+                                                                action_type="new_p2p_key",
+                                                                server=server_id,
+                                                                period="6m",
+                                                                price=prices[0]*6))
         # btn2 = (InlineKeyboardButton(f'3 Месяца - {prices[1]}', callback_data=vpn_p2p_period_callback.new(action_type="",server=server_id, period=3)))
         btn3 = InlineKeyboardButton(f'1 Год - {prices[2]} ({math.ceil((prices[2]/12)*10)/10} RUB в месяц)',
                                             callback_data=vpn_p2p_period_callback.new(
@@ -169,7 +182,9 @@ async def keyboard_show_periods(server_id, prices, trial_hidden, trial_data):
         
         if trial_hidden != True:
             keyboard.add(btn0)
-        keyboard.add(btn1, btn3)
+        keyboard.add(btn1)
+        keyboard.add(btn1_2, btn1_3)
+        keyboard.add(btn3)
         return keyboard
     except Exception as e:
         print(f"ERROR: keyboard_show_periods: {e}")
