@@ -590,6 +590,7 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
 
         price_year = special_price if special else price*10
 
+        mounth_discount = False
         user_id = callback_query.from_user.id
         is_admin = user_id in admin_ids
         trial_used = await db.check_trial(user_id)
@@ -607,8 +608,10 @@ async def select_period(callback_query: CallbackQuery, callback_data: Dict[str, 
         print(f"\n DATA: {data} \n")
         text = (
             f"Вы выбрали сервер: <b>{server_name}</b>\n\n"
-            f"Цена/месяц: <b>{price} RUB (со скидкой 50%*)</b>\n"
+            f"Цена/месяц: <b>{price} RUB {'(со скидкой 50%*)' if mounth_discount else '' }</b>\n"
+            ) + (
             f"* Скидка действует до 1 сентября. С 1 сентября стоимость станет 200р \n"
+            if mounth_discount else ''
             ) + (
             f"\n<b>Внимание Акция! Оставшиеся дни: {special_days_to_go}. \n{special_price} за годовую подписку! ({math.ceil((special_price/12)*10)/10} в месяц!)</b> \n"
             if special else ""
